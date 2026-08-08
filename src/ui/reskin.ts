@@ -292,6 +292,15 @@ function applyPortalReskin(): void {
     log.debugSync('turmas-portal ocultado (substituído pelo dashboard)');
   }
 
+  // 3. Ocultar carrossel "Últimas Atualizações" — substituído pelo card de feed no dashboard
+  //    O form continua no DOM (display:none via CSS) para que os links internos
+  //    possam ser ativados por .click() ao navegar do card de atualizações.
+  const formAtualizacoes = resolve(SEL.form_atualizacoes);
+  if (formAtualizacoes) {
+    addClass(formAtualizacoes, 'sc-hidden');
+    log.debugSync('formAtualizacoesTurmas ocultado (substituído pelo feed)');
+  }
+
   // 3. Esconder seções vazias sem ID estável (busca por texto do cabeçalho)
   hideEmptySectionByHeading('Comunidades Virtuais');
   hideEmptySectionByHeading('Minhas atividades');

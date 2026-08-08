@@ -114,6 +114,18 @@ export interface HorarioDecodificado {
   resumo: string;
 }
 
+/** Um item do feed de atualizações do portal (carrossel "Últimas Atualizações") */
+export interface AtualizacaoItem {
+  /** Data no formato dd/mm/aaaa */
+  data: string;
+  /** Nome da disciplina sem o sufixo de ano, ex: "REDAÇÃO - 1ª SÉRIE" */
+  nomeTurma: string;
+  /** Descrição da atualização, ex: "Nova Notícia: 2a chamada da 2a etapa" */
+  tipo: string;
+  /** ID numérico da turma (do onclick do link) — usado para navegação */
+  idTurma: string | null;
+}
+
 /** Um aviso/notícia de uma turma */
 export interface AvisoTurma {
   /** Data e hora, ex: "25/06/2026 14:14" */

@@ -12,7 +12,8 @@ import { h, render } from 'preact';
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import { collectAll } from '@/fetchers/collect';
 import { loadColecao, clearColecao, cacheAge } from '@/storage/cache';
-import type { ColecaoCompleta, NotasTurma, FrequenciaTurma, TurmaInfo, ProgressInfo } from '@/types';
+import { parseAtualizacoes } from '@/parsers/atualizacoes';
+import type { ColecaoCompleta, NotasTurma, FrequenciaTurma, TurmaInfo, ProgressInfo, AtualizacaoItem } from '@/types';
 
 // ── Utilitários ───────────────────────────────────────────────────────────────
 
@@ -51,6 +52,78 @@ function FreqLimite({ frequencia }: { frequencia: FrequenciaTurma }) {
   return (
     <div class={`sc-freq-limite ${cls}`} title={`Limite: ${faltasPermitidas} faltas de ${frequencia.totalAulas} aulas`}>
       Pode faltar mais {faltasRestantes} vez{faltasRestantes !== 1 ? 'es' : ''}
+    </div>
+  );
+}
+
+// ── Navegação via carrossel de atualizações ───────────────────────────────────
+
+/**
+ * Clica no link JSF do carrossel correspondente ao idTurma, navegando para
+ * a turma virtual com foco na atualização. O form permanece no DOM (só ocultado
+ * por CSS), então jsfcljs consegue encontrá-lo e submeter normalmente.
+ */
+function navigateToAtualizacao(idTurma: string | null): void {
+  if (!idTurma) return;
+  const links = document.querySelectorAll<HTMLAnchorElement>(
+    '#atualizacoes-turma a[onclick]',
+  );
+  for (const link of links) {
+    if (link.getAttribute('onclick')?.includes(`'idTurma':'${idTurma}'`)) {
+      link.click();
+      return;
+    }
+  }
+}
+
+// ── Card de atualizações recentes ─────────────────────────────────────────────
+
+function AtualizacoesCard({ items }: { items: AtualizacaoItem[] }) {
+  if (items.length === 0) return null;
+
+  // Formata "DD/MM/AAAA" → "DD/MM"
+  function shortDate(d: string): string {
+    return d.slice(0, 5);
+  }
+
+  // Extrai o prefixo do tipo ("Nova Notícia", "Novo Tópico de Aula", etc.)
+  // e o restante separadamente para poder estilizá-los
+  function splitTipo(tipo: string): [string, string] {
+    const colonIdx = tipo.indexOf(':');
+    if (colonIdx === -1) return [tipo, ''];
+    return [tipo.slice(0, colonIdx).trim(), tipo.slice(colonIdx + 1).trim()];
+  }
+
+  return (
+    <div class="sc-feed-card">
+      <div class="sc-feed-header">
+        <span class="sc-feed-title">Atualizações recentes</span>
+        <span class="sc-feed-count">{items.length} {items.length === 1 ? 'item' : 'itens'}</span>
+      </div>
+      <ul class="sc-feed-list">
+        {items.map((item, i) => {
+          const [tipoLabel, tipoDesc] = splitTipo(item.tipo);
+          return (
+            <li class="sc-feed-item" key={i}>
+              <span class="sc-feed-date">{shortDate(item.data)}</span>
+              <div class="sc-feed-content">
+                <button
+                  class="sc-feed-turma"
+                  type="button"
+                  onClick={() => navigateToAtualizacao(item.idTurma)}
+                  title={`Abrir turma virtual de ${item.nomeTurma}`}
+                >
+                  {item.nomeTurma}
+                </button>
+                <span class="sc-feed-tipo">
+                  {tipoLabel && <span class="sc-feed-tipo-label">{tipoLabel}</span>}
+                  {tipoDesc && <span class="sc-feed-tipo-desc">{tipoDesc ? `: ${tipoDesc}` : ''}</span>}
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -245,10 +318,39 @@ function Dashboard({
   turmasIniciais: TurmaInfo[];
 }) {
   const [data, setData] = useState<ColecaoCompleta | null>(null);
+  const [atualizacoes, setAtualizacoes] = useState<AtualizacaoItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<ProgressInfo | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Observa #atualizacoes-turma para quando o AJAX do SIGAA preencher o conteúdo
+  useEffect(() => {
+    const tryParse = (): AtualizacaoItem[] => {
+      const el = document.getElementById('atualizacoes-turma');
+      if (!el) return [];
+      try { return parseAtualizacoes(el.outerHTML); } catch { return []; }
+    };
+
+    const initial = tryParse();
+    if (initial.length > 0) {
+      setAtualizacoes(initial);
+      return;
+    }
+
+    const target = document.getElementById('atualizacoes-turma') ?? document.getElementById('formAtualizacoesTurmas');
+    if (!target) return;
+
+    const obs = new MutationObserver(() => {
+      const items = tryParse();
+      if (items.length > 0) {
+        setAtualizacoes(items);
+        obs.disconnect();
+      }
+    });
+    obs.observe(target, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, []);
 
   useEffect(() => {
     loadColecao().then(cached => {
@@ -394,6 +496,9 @@ function Dashboard({
           ))}
         </div>
       )}
+
+      {/* Feed de atualizações recentes */}
+      <AtualizacoesCard items={atualizacoes} />
 
       {/* Grade de cards */}
       {data && data.turmas.length > 0 ? (
@@ -920,6 +1025,124 @@ const DASHBOARD_CSS = `
   color: #adb5bd;
   font-size: 11px;
   white-space: nowrap;
+}
+
+/* ── Feed de atualizações ── */
+.sc-feed-card {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-left: 4px solid #f08c00;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 20px;
+}
+
+.sc-feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.sc-feed-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #212529;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sc-feed-count {
+  font-size: 11px;
+  color: #adb5bd;
+}
+
+.sc-feed-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sc-feed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f8f9fa;
+  transition: background 150ms ease;
+}
+
+.sc-feed-item:last-child {
+  border-bottom: none;
+}
+
+.sc-feed-item:hover {
+  background: #fffbf5;
+}
+
+.sc-feed-date {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #f08c00;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+  padding-top: 1px;
+  min-width: 36px;
+}
+
+.sc-feed-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sc-feed-turma {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #212529;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.sc-feed-turma:hover {
+  color: #1971c2;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sc-feed-turma:focus-visible {
+  outline: 2px solid #1971c2;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.sc-feed-tipo {
+  font-size: 11px;
+  color: #868e96;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sc-feed-tipo-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.sc-feed-tipo-desc {
+  color: #868e96;
 }
 
 /* ── Estado vazio ── */
