@@ -1,0 +1,17 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+*.local
+
+# Configuração local do Claude Code
+.claude/settings.local.json
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Capturas de tela soltas (não fixtures)
+Captura de tela*.png

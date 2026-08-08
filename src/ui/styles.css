@@ -199,28 +199,129 @@ body.sc-reskin-active .sc-horario-codigo {
 }
 
 /* ══════════════════════════════════════════════════════════
-   4. Sidebar (dados institucionais do aluno)
-   ══════════════════════════════════════════════════════════ */
+   4. Fórum do curso (página principal)
+   ══════════════════════════════════════════════════════════
+   #forum-portal exibe os tópicos do fórum da turma/curso na
+   página principal. Vira um card consistente com o resto do
+   reskin, com tabela de tópicos legível. */
 
-body.sc-reskin-active #agenda-docente {
-  font-family: var(--sc-font-family);
-  font-size: var(--sc-font-size-sm);
-  line-height: var(--sc-line-height-base);
+body.sc-reskin-active #forum-portal {
+  background: var(--sc-color-bg) !important;
+  border: 1px solid var(--sc-color-border-subtle);
+  border-radius: var(--sc-radius-lg);
+  padding: var(--sc-space-5) !important;
+  margin-top: var(--sc-space-4) !important;
+  box-shadow: var(--sc-shadow-sm);
+  box-sizing: border-box;
 }
 
-body.sc-reskin-active #agenda-docente table td {
-  padding: var(--sc-space-1) var(--sc-space-2);
-  vertical-align: top;
+body.sc-reskin-active #forum-portal h4 {
+  font-size: var(--sc-font-size-lg) !important;
+  margin: 0 0 var(--sc-space-3) !important;
+}
+
+/* Texto de apresentação do fórum ("Caro discente...") */
+body.sc-reskin-active #forum-portal .descricaoOperacao {
+  background: var(--sc-color-bg-subtle) !important;
+  border-left: 3px solid var(--sc-color-primary);
+  border-radius: var(--sc-radius-sm);
+  padding: var(--sc-space-3) var(--sc-space-4) !important;
+  color: var(--sc-color-text-secondary) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  margin: 0 0 var(--sc-space-4) !important;
+}
+
+/* "Cadastrar novo tópico" / "Visualizar todos os tópicos" — vira par de botões */
+body.sc-reskin-active #forum-portal center {
+  display: flex;
+  gap: var(--sc-space-3);
+  justify-content: flex-start;
+  margin: 0 0 var(--sc-space-4) !important;
+}
+
+body.sc-reskin-active #forum-portal center a {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--sc-space-2) var(--sc-space-4);
+  border: 1px solid var(--sc-color-border);
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-color-primary) !important;
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  text-decoration: none !important;
+  transition: background var(--sc-transition-fast), border-color var(--sc-transition-fast);
+}
+
+body.sc-reskin-active #forum-portal center a:hover {
+  background: var(--sc-color-bg-subtle);
+  border-color: var(--sc-color-primary);
+}
+
+/* Tabela de tópicos */
+body.sc-reskin-active #forum-portal table.listagem {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+body.sc-reskin-active #forum-portal table.listagem th {
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sc-color-text-secondary);
+  padding: var(--sc-space-2) var(--sc-space-3);
+  border-bottom: 2px solid var(--sc-color-border);
+  text-align: left;
+  background: transparent !important;
+}
+
+body.sc-reskin-active #forum-portal table.listagem td {
+  padding: var(--sc-space-3);
+  border-bottom: 1px solid var(--sc-color-border-subtle);
+  font-size: var(--sc-font-size-base);
+  vertical-align: middle;
+  background: transparent !important;
+}
+
+body.sc-reskin-active #forum-portal table.listagem tr:last-child td {
+  border-bottom: none;
+}
+
+body.sc-reskin-active #forum-portal table.listagem tbody tr:hover td {
+  background: var(--sc-color-bg-subtle) !important;
+}
+
+body.sc-reskin-active #forum-portal table.listagem a {
+  color: var(--sc-color-primary);
+  font-weight: var(--sc-font-weight-medium);
+  text-decoration: none;
+}
+
+body.sc-reskin-active #forum-portal table.listagem a:hover {
+  text-decoration: underline;
+}
+
+/* Coluna Autor mostra a matrícula (nome completo só no tooltip) — deixar discreta */
+body.sc-reskin-active #forum-portal table.listagem td acronym {
+  color: var(--sc-color-text-muted);
+  font-family: var(--sc-font-mono);
+  font-size: var(--sc-font-size-sm);
+  text-decoration: none;
+  cursor: help;
 }
 
 /* ══════════════════════════════════════════════════════════
    5. Rodapé
    ══════════════════════════════════════════════════════════ */
 
-body.sc-reskin-active #rodape {
+body.sc-reskin-active #rodape,
+body.sc-reskin-active #rodape * {
   font-family: var(--sc-font-family);
   font-size: var(--sc-font-size-xs);
-  color: var(--sc-color-text-muted);
+  color: #034E86 !important;
+}
+
+body.sc-reskin-active #rodape {
   padding: var(--sc-space-4);
   border-top: 1px solid var(--sc-color-border-subtle);
 }
@@ -851,10 +952,14 @@ body.sc-reskin-active tr.alunoSelecionado td {
 
 /* ── Rodapé na turma virtual ────────────────────────────── */
 
+body.sc-reskin-active #rodape,
+body.sc-reskin-active #rodape * {
+  color: #034E86 !important;
+}
+
 body.sc-reskin-active #rodape {
   background: var(--sc-color-bg-subtle) !important;
   border-top: 1px solid var(--sc-color-border) !important;
-  color: var(--sc-color-text-muted) !important;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -963,45 +1068,160 @@ body.sc-reskin-active div.ThemeOfficeSubMenu td.ThemeOfficeMenuSplit {
   height: 1px !important;
 }
 
-/* ── Perfil do aluno (sidebar direita do portal) ────────── */
+/* ══════════════════════════════════════════════════════════
+   8b. Painel lateral (perfil, atalhos, dados institucionais)
+   ══════════════════════════════════════════════════════════
+   #perfil-docente é a coluna direita da página principal — foto +
+   atalhos (Mensagens, Atualizar Foto, Meus Dados), ícones de
+   fórum/CAPES/comunidade e os dados institucionais (matrícula,
+   curso etc). Cada bloco vira um card consistente com o resto
+   do reskin. Nota: o SIGAA usa id="agenda-docente" duas vezes
+   (HTML inválido) — distinguimos os dois blocos por conteúdo
+   via :has(). */
 
 body.sc-reskin-active #perfil-docente {
-  background: var(--sc-color-bg-subtle) !important;
+  background: transparent !important;
+  font-family: var(--sc-font-family) !important;
 }
 
-body.sc-reskin-active #perfil-docente table {
+/* Bloco superior: foto + links de atalho */
+body.sc-reskin-active .pessoal-docente {
+  display: flex !important;
+  align-items: center;
+  gap: var(--sc-space-4);
+  background: var(--sc-color-bg) !important;
+  border: 1px solid var(--sc-color-border-subtle);
+  border-radius: var(--sc-radius-lg);
+  padding: var(--sc-space-4) !important;
+  box-shadow: var(--sc-shadow-sm);
+  box-sizing: border-box;
+}
+
+body.sc-reskin-active .pessoal-docente .foto {
+  flex-shrink: 0;
+}
+
+body.sc-reskin-active .pessoal-docente .foto img {
+  border-radius: 50% !important;
+  width: 64px !important;
+  height: 64px !important;
+  max-width: 64px !important;
+  object-fit: cover;
+  border: 1px solid var(--sc-color-border) !important;
+}
+
+body.sc-reskin-active .pessoal-docente ul {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sc-space-1);
+}
+
+body.sc-reskin-active .pessoal-docente ul li {
+  margin: 0 !important;
+}
+
+body.sc-reskin-active .pessoal-docente a {
+  color: var(--sc-color-primary) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  font-weight: var(--sc-font-weight-medium);
+  text-decoration: none !important;
+}
+
+body.sc-reskin-active .pessoal-docente a:hover {
+  text-decoration: underline !important;
+}
+
+body.sc-reskin-active .pessoal-docente .clear {
+  display: none !important;
+}
+
+/* Nome do aluno, centralizado abaixo do card de perfil */
+body.sc-reskin-active .info-docente {
+  text-align: center !important;
+  margin: var(--sc-space-3) 0 !important;
+  font-size: var(--sc-font-size-sm) !important;
+  color: var(--sc-color-text-secondary) !important;
+}
+
+/* Bloco de ícones (Fórum de Curso, CAPES, Comunidade Virtual) */
+body.sc-reskin-active #agenda-docente:has(input[type="image"]) {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--sc-space-3);
+  background: var(--sc-color-bg) !important;
+  border: 1px solid var(--sc-color-border-subtle);
+  border-radius: var(--sc-radius-lg);
+  padding: var(--sc-space-4) !important;
+  box-shadow: var(--sc-shadow-sm);
+  margin-top: var(--sc-space-3) !important;
+  box-sizing: border-box;
+}
+
+body.sc-reskin-active #agenda-docente:has(input[type="image"]) img,
+body.sc-reskin-active #agenda-docente:has(input[type="image"]) input[type="image"] {
+  transition: opacity var(--sc-transition-fast);
+}
+
+body.sc-reskin-active #agenda-docente:has(input[type="image"]) a:hover img,
+body.sc-reskin-active #agenda-docente:has(input[type="image"]) input[type="image"]:hover {
+  opacity: 0.75;
+}
+
+/* Dados institucionais (matrícula, curso, status etc) */
+body.sc-reskin-active #agenda-docente:has(table) {
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  line-height: var(--sc-line-height-base);
+  background: var(--sc-color-bg) !important;
+  border: 1px solid var(--sc-color-border-subtle);
+  border-radius: var(--sc-radius-lg);
+  padding: var(--sc-space-4) !important;
+  box-shadow: var(--sc-shadow-sm);
+  margin-top: var(--sc-space-3) !important;
+  box-sizing: border-box;
+}
+
+body.sc-reskin-active #agenda-docente:has(table) h4 {
+  font-size: var(--sc-font-size-base) !important;
+  margin: 0 0 var(--sc-space-3) !important;
+}
+
+body.sc-reskin-active #agenda-docente:has(table) table {
   background: transparent !important;
   border: none !important;
   width: 100% !important;
 }
 
-body.sc-reskin-active #perfil-docente td {
+body.sc-reskin-active #agenda-docente:has(table) table td {
   background: transparent !important;
   border: none !important;
-  padding: var(--sc-space-1) var(--sc-space-2) !important;
-  font-family: var(--sc-font-family) !important;
-  font-size: var(--sc-font-size-sm) !important;
-  color: var(--sc-color-text-secondary) !important;
-  vertical-align: middle !important;
+  border-bottom: 1px solid var(--sc-color-border-subtle) !important;
+  padding: var(--sc-space-2) var(--sc-space-2) var(--sc-space-2) 0 !important;
+  vertical-align: top !important;
 }
 
-/* Foto de perfil — arredondar */
-body.sc-reskin-active #perfil-docente img {
-  border-radius: var(--sc-radius-md) !important;
-  border: 2px solid var(--sc-color-border) !important;
-  max-width: 80px !important;
-  height: auto !important;
+body.sc-reskin-active #agenda-docente:has(table) table tr:last-child td {
+  border-bottom: none !important;
 }
 
-/* Links dentro do perfil */
-body.sc-reskin-active #perfil-docente a {
-  color: var(--sc-color-primary) !important;
-  text-decoration: none !important;
-  font-size: var(--sc-font-size-sm) !important;
+body.sc-reskin-active #agenda-docente:has(table) table td:first-child {
+  color: var(--sc-color-text-muted) !important;
+  font-weight: var(--sc-font-weight-medium);
+  white-space: nowrap;
 }
 
-body.sc-reskin-active #perfil-docente a:hover {
-  text-decoration: underline !important;
+body.sc-reskin-active #agenda-docente:has(table) table td:last-child {
+  color: var(--sc-color-text) !important;
+}
+
+/* Foto de perfil fora do card .pessoal-docente (fallback) */
+body.sc-reskin-active #perfil-docente img:not(.pessoal-docente .foto img) {
+  border-radius: var(--sc-radius-md);
 }
 
 /* ══════════════════════════════════════════════════════════

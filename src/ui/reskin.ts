@@ -9,7 +9,7 @@
  * - removeReskin() reverte exatamente o que applyReskin() fez.
  */
 
-import { resolve, SEL } from '@/selectors/map';
+import { resolve, resolveAll, SEL } from '@/selectors/map';
 import { log } from '@/lib/log';
 import type { VersionStatus } from '@/selectors/version';
 import type { SigaaRoute } from '@/content/router';
@@ -17,6 +17,7 @@ import type { SigaaRoute } from '@/content/router';
 // Registro de todas as mudanças para reversão limpa
 const classesAdded: Array<{ el: Element; cls: string }> = [];
 const domMoves: Array<{ node: Node; parent: Node; nextSibling: Node | null }> = [];
+let creditHost: HTMLDivElement | null = null;
 
 function addClass(el: Element | null, cls: string): void {
   if (!el) return;
@@ -240,6 +241,29 @@ function unwatchNavDropdown(): void {
   navPopupCleanups.length = 0;
 }
 
+// Registro de renomeações de texto de itens de menu (para reversão)
+const menuTextRenames: Array<{ el: Element; before: string }> = [];
+
+/**
+ * Renomeia itens do menu de navegação por correspondência exata de texto.
+ * Não altera o link/onclick — só o rótulo visível. Ex: "Emitir Boletim" →
+ * "Visualizar Boletim" (o boletim é só leitura, nunca "emitido" pelo aluno).
+ */
+function renameMenuItem(from: string, to: string): void {
+  try {
+    const items = resolveAll(SEL.menu_item_texto);
+    for (const el of items) {
+      if (el.textContent?.trim() === from) {
+        menuTextRenames.push({ el, before: el.textContent });
+        el.textContent = to;
+        log.debugSync('menu item renomeado:', from, '→', to);
+      }
+    }
+  } catch {
+    // Silencioso
+  }
+}
+
 const DISCENTE_URL = 'https://sig.cefetmg.br/sigaa/portais/discente/discente.jsf';
 
 /**
@@ -266,6 +290,50 @@ function makeLogoClickable(): void {
   }
 }
 
+/**
+ * Crédito discreto da extensão, logo abaixo do rodapé original do SIGAA.
+ * Vive em Shadow DOM (closed) — é conteúdo novo, não restilização do
+ * existente, então a exceção da seção 4 do CLAUDE.md não se aplica aqui.
+ */
+function mountCredit(): void {
+  try {
+    const rodape = resolve(SEL.rodape);
+    if (!rodape) return;
+
+    creditHost = document.createElement('div');
+    creditHost.id = 'betterui-credit-host';
+    creditHost.style.cssText = 'all: initial; display: block;';
+    rodape.insertAdjacentElement('afterend', creditHost);
+
+    const shadow = creditHost.attachShadow({ mode: 'closed' });
+    const style = document.createElement('style');
+    style.textContent = `
+      p {
+        margin: 0;
+        padding: 4px 16px 12px;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        font-size: 11px;
+        color: #adb5bd;
+        text-align: center;
+      }
+    `;
+    shadow.appendChild(style);
+
+    const p = document.createElement('p');
+    p.textContent = 'Interface aprimorada por Miguel Barbosa Godinho — extensão betterUI (não-oficial)';
+    shadow.appendChild(p);
+
+    log.debugSync('crédito betterUI montado');
+  } catch {
+    // Silencioso
+  }
+}
+
+function unmountCredit(): void {
+  creditHost?.remove();
+  creditHost = null;
+}
+
 export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
   // Gate: ativa o CSS via classe no body
   document.body.classList.add('sc-reskin-active');
@@ -275,6 +343,16 @@ export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
 
   watchNavDropdown();
   makeLogoClickable();
+  renameMenuItem('Emitir Boletim', 'Visualizar Boletim');
+  mountCredit();
+
+  // Esconder o link "Turma Virtual" / "Portal do Discente" acima do rodapé —
+  // redundante: a navegação equivalente já existe no h1 clicável e no menu.
+  const linkRodape = resolve(SEL.link_navegacao_rodape);
+  if (linkRodape) {
+    addClass(linkRodape, 'sc-hidden');
+    log.debugSync('link_navegacao_rodape ocultado');
+  }
 
   // fixFullWidth só no portal — as turmas virtuais usam YUI Layout Manager
   // com posicionamento em px calculado uma vez no carregamento.
@@ -648,12 +726,19 @@ function collapseEmptyRightWidgets(): void {
 
 export function removeReskin(): void {
   unwatchNavDropdown();
+  unmountCredit();
 
   // Remover event listeners adicionados ao DOM
   for (const { el, type, fn } of domListeners) {
     try { el.removeEventListener(type, fn); } catch { /* silencioso */ }
   }
   domListeners.length = 0;
+
+  // Reverter renomeações de texto de itens de menu
+  for (const { el, before } of menuTextRenames) {
+    try { el.textContent = before; } catch { /* silencioso */ }
+  }
+  menuTextRenames.length = 0;
 
   // Desconectar observers da sidebar esquerda
   for (const obs of leftSidebarObservers) obs.disconnect();

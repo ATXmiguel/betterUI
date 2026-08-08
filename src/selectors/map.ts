@@ -115,6 +115,14 @@ export const SEL = {
     valida: (_el: Element) => true,
   },
 
+  menu_item_texto: {
+    id: 'menu_item_texto',
+    descricao: 'Célula de texto de qualquer item do menu JSCookMenu (Ensino, Pesquisa etc.) — usar resolveAll + filtrar por textContent',
+    primario: '.ThemeOfficeMenuItemText',
+    fallbacks: [],
+    valida: (_el: Element) => true,
+  },
+
   acoes_turma: {
     id: 'acoes_turma',
     descricao: 'Form com os 5 botões de ação da turma virtual (Menu Discente, Imprimir, etc.)',
@@ -177,6 +185,14 @@ export const SEL = {
     primario: 'span.nome b',
     fallbacks: ['span.nome small', '.info-docente .nome'],
     valida: (el: Element) => (el.textContent?.trim().length ?? 0) > 2,
+  },
+
+  link_navegacao_rodape: {
+    id: 'link_navegacao_rodape',
+    descricao: 'Div com link de alternância "Turma Virtual" / "Portal do Discente" logo acima do rodapé',
+    primario: '#container > div:has(> a[href$="/ava/index.jsf"]), #container > div:has(> a[href*="verPortalDiscente"])',
+    fallbacks: [],
+    valida: (el: Element) => el.parentElement?.id === 'container' && el.nextElementSibling?.id === 'rodape',
   },
 
   matricula_label: {
