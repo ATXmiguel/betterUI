@@ -1,0 +1,1155 @@
+@import './tokens.css';
+
+/*
+ * Reskin CSS — betterUI
+ *
+ * GATE: todas as regras dependem de body.sc-reskin-active.
+ * A classe é adicionada pelo JS em src/ui/reskin.ts após verificação de versão.
+ * Sem a classe, esta folha de estilos não altera nada na página do SIGAA.
+ *
+ * Convenção: nunca sobrescrever seletor de elemento nu (ex: "table { ... }").
+ * Sempre escopar sob body.sc-reskin-active + ID/classe do SIGAA.
+ */
+
+/* ══════════════════════════════════════════════════════════
+   0. Full-width — remove o container de largura fixa do SIGAA
+   ══════════════════════════════════════════════════════════
+   O SIGAA centra o conteúdo com width fixo e margens laterais.
+   Expandimos para ocupar 100% da viewport com padding interno. */
+
+/* O body do SIGAA (id ext-gen6 nas turmas virtuais) tem background azul-marinho
+   rgb(64,78,130) vindo do YUI. Qualquer gap entre os painéis expõe essa cor.
+   Resetamos para neutro quando o reskin está ativo. */
+body.sc-reskin-active {
+  background-color: var(--sc-color-bg-subtle) !important;
+}
+
+/* Layout YUI (turma virtual): body não deve ter scroll próprio —
+   todo scroll acontece dentro dos painéis position:absolute */
+body.sc-layout-yui {
+  overflow: hidden !important;
+}
+
+/* South pane — barra branca no rodapé da turma virtual */
+body.sc-reskin-active .ui-layout-pane-south {
+  background: var(--sc-color-bg-subtle) !important;
+  border-top: 1px solid var(--sc-color-border) !important;
+  color: var(--sc-color-text-muted) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  padding: var(--sc-space-1) var(--sc-space-3) !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* #container é o div de 960px com margem automática que centraliza todo o conteúdo */
+body.sc-reskin-active #container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box;
+}
+
+body.sc-reskin-active #portal-docente {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Layout/largura de #conteudo APENAS no portal — na turma virtual o #conteudo
+   é um pane do YUI Layout Manager (position:absolute, largura em px calculada
+   pelo JS). Sobrescrever width:100% aqui expande o pane sobre #barraDireita. */
+body.sc-reskin-active:not(.sc-layout-yui) #conteudo {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: var(--sc-space-4) var(--sc-space-6) !important;
+  box-sizing: border-box;
+}
+
+/* ══════════════════════════════════════════════════════════
+   1. Tipografia global
+   ══════════════════════════════════════════════════════════
+   O SIGAA usa Arial/Verdana em tamanhos inconsistentes e sem
+   line-height adequado. Substituímos pelo system font stack
+   dentro do container principal. */
+
+body.sc-reskin-active #conteudo {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-base);
+  line-height: var(--sc-line-height-base);
+  color: var(--sc-color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body.sc-reskin-active #conteudo h1,
+body.sc-reskin-active #conteudo h2,
+body.sc-reskin-active #conteudo h3,
+body.sc-reskin-active #conteudo h4,
+body.sc-reskin-active #conteudo h5 {
+  font-family: var(--sc-font-family);
+  font-weight: var(--sc-font-weight-bold);
+  line-height: var(--sc-line-height-tight);
+  color: var(--sc-color-text);
+}
+
+/* ══════════════════════════════════════════════════════════
+   2. Utilitários de visibilidade (adicionados via JS)
+   ══════════════════════════════════════════════════════════ */
+
+body.sc-reskin-active .sc-hidden {
+  display: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   3. Tabela de turmas do portal
+   ══════════════════════════════════════════════════════════
+   #turmas-portal contém a tabela mais importante do portal.
+   Melhoramos espaçamento, visibilidade dos links e hover. */
+
+/* .simple-panel: neutraliza o bg azul-lavanda rgb(239,243,250) do SIGAA.
+   Apenas background — sem border/radius/margin que quebram o layout float. */
+body.sc-reskin-active .simple-panel {
+  background: var(--sc-color-bg) !important;
+}
+
+body.sc-reskin-active #turmas-portal {
+  margin-top: var(--sc-space-4) !important;
+}
+
+body.sc-reskin-active #noticias-portal {
+  margin-top: 0 !important;
+}
+
+/* Só a tabela real de turmas (não os wrappers subFormulario) */
+body.sc-reskin-active #turmas-portal table {
+  background: var(--sc-color-bg) !important;
+}
+
+body.sc-reskin-active #turmas-portal table th {
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sc-color-text-secondary);
+  padding: var(--sc-space-2) var(--sc-space-4);
+  background: var(--sc-color-bg-subtle);
+  border-bottom: 2px solid var(--sc-color-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+body.sc-reskin-active #turmas-portal table td {
+  padding: var(--sc-space-3) var(--sc-space-4);
+  border-bottom: 1px solid var(--sc-color-border-subtle);
+  font-size: var(--sc-font-size-base);
+  vertical-align: middle;
+}
+
+body.sc-reskin-active #turmas-portal table tr:last-child td {
+  border-bottom: none;
+}
+
+body.sc-reskin-active #turmas-portal table tbody tr:hover td {
+  background-color: var(--sc-color-bg-subtle);
+}
+
+/* Links de acesso à turma virtual — tornar claramente clicáveis */
+body.sc-reskin-active #turmas-portal table a {
+  color: var(--sc-color-primary);
+  text-decoration: none;
+  font-weight: var(--sc-font-weight-medium);
+  transition: color var(--sc-transition-fast);
+}
+
+body.sc-reskin-active #turmas-portal table a:hover {
+  color: var(--sc-color-primary-hover);
+  text-decoration: underline;
+}
+
+body.sc-reskin-active #turmas-portal table a:focus-visible {
+  outline: 2px solid var(--sc-color-primary);
+  outline-offset: 2px;
+  border-radius: var(--sc-radius-sm);
+}
+
+/* Código de horário — destaque em fonte mono */
+body.sc-reskin-active .sc-horario-codigo {
+  font-family: var(--sc-font-mono);
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-color-text-secondary);
+  background: var(--sc-color-bg-muted);
+  padding: 2px 6px;
+  border-radius: var(--sc-radius-sm);
+}
+
+/* ══════════════════════════════════════════════════════════
+   4. Sidebar (dados institucionais do aluno)
+   ══════════════════════════════════════════════════════════ */
+
+body.sc-reskin-active #agenda-docente {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  line-height: var(--sc-line-height-base);
+}
+
+body.sc-reskin-active #agenda-docente table td {
+  padding: var(--sc-space-1) var(--sc-space-2);
+  vertical-align: top;
+}
+
+/* ══════════════════════════════════════════════════════════
+   5. Rodapé
+   ══════════════════════════════════════════════════════════ */
+
+body.sc-reskin-active #rodape {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-color-text-muted);
+  padding: var(--sc-space-4);
+  border-top: 1px solid var(--sc-color-border-subtle);
+}
+
+/* ══════════════════════════════════════════════════════════
+   6. Páginas de turma virtual
+   ══════════════════════════════════════════════════════════
+   Aplicamos tipografia consistente nas páginas de notas,
+   frequência e materiais. */
+
+/* Notas: .tabelaRelatorio */
+body.sc-reskin-active .tabelaRelatorio {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+body.sc-reskin-active .tabelaRelatorio th {
+  padding: var(--sc-space-2) var(--sc-space-3);
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--sc-color-bg-subtle);
+  border-bottom: 2px solid var(--sc-color-border);
+  white-space: nowrap;
+}
+
+body.sc-reskin-active .tabelaRelatorio td {
+  padding: var(--sc-space-2) var(--sc-space-3);
+  border-bottom: 1px solid var(--sc-color-border-subtle);
+}
+
+/* Frequência: table.listing */
+body.sc-reskin-active table.listing {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-base);
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+body.sc-reskin-active table.listing th {
+  padding: var(--sc-space-2) var(--sc-space-4);
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--sc-color-bg-subtle);
+  border-bottom: 2px solid var(--sc-color-border);
+}
+
+body.sc-reskin-active table.listing td {
+  padding: var(--sc-space-2) var(--sc-space-4);
+  border-bottom: 1px solid var(--sc-color-border-subtle);
+}
+
+/* ══════════════════════════════════════════════════════════
+   7. Turma virtual — layout completo (ava/*.jsf)
+   ══════════════════════════════════════════════════════════
+   O layout usa o YUI panel manager (ui-layout-*) com painéis
+   redimensionáveis. Mantemos a estrutura e substituímos cores
+   e tipografia. NÃO alterar padding/margin/height em elementos
+   calculados pelo YUI (cabecalho, painéis) — isso desalinha tudo.
+
+   Estrutura confirmada via DevTools:
+   - Barra esquerda: rich-panelbar (RichFaces acordeão) com itemMenu/itemAtivoMenu
+   - Barra direita: rich-stglpanel (.blocoDireita) com headerBloco
+   - Cabeçalhos inline: background:url('painel_bg.png') — override com !important */
+
+/* ── Estrutura de painéis YUI ───────────────────────────── */
+
+body.sc-reskin-active .ui-layout-pane {
+  background: var(--sc-color-bg-subtle) !important;
+  font-family: var(--sc-font-family) !important;
+}
+
+body.sc-reskin-active .ui-layout-pane-center {
+  background: var(--sc-color-bg) !important;
+}
+
+body.sc-reskin-active .ui-layout-resizer,
+body.sc-reskin-active .ui-layout-resizer-open,
+body.sc-reskin-active .ui-layout-resizer-closed {
+  background: var(--sc-color-bg-subtle) !important;
+  border: none !important;
+}
+
+/* ── Cabeçalho da turma virtual ─────────────────────────── */
+
+body.sc-reskin-active #cabecalho {
+  background: var(--sc-color-bg-subtle) !important;
+  border-bottom: 1px solid var(--sc-color-border) !important;
+}
+
+/* NÃO alterar font-size/padding aqui: o YUI Layout Manager calcula a posição
+   absoluta de #barraEsquerda/#barraDireita em pixels com base na altura
+   ORIGINAL de #cabecalho. Mudar a altura desalinha os painéis. */
+body.sc-reskin-active #info-sistema {
+  background: transparent !important;
+  font-family: var(--sc-font-family) !important;
+  color: var(--sc-color-text-secondary) !important;
+  border-bottom: 2px solid #1971C2 !important;
+}
+
+body.sc-reskin-active #info-sistema a,
+body.sc-reskin-active #info-sistema span {
+  color: var(--sc-color-text-secondary) !important;
+  text-decoration: none !important;
+}
+
+body.sc-reskin-active #info-sistema a:hover {
+  color: var(--sc-color-primary) !important;
+}
+
+/* ── Cabeçalho simplificado — #nomeTurma recebe o conteúdo injetado por JS ── */
+
+/* #nomeTurma: centralize o conteúdo do cabeçalho da turma.
+   NÃO usar display:flex — os filhos são <p display:inline> do SIGAA.
+   Flex os torna block-items sem text-align, causando quebra à esquerda. */
+body.sc-reskin-active #nomeTurma {
+  display: block !important;
+  text-align: center !important;
+  font-family: var(--sc-font-family) !important;
+}
+
+/* Garante que os <p> inline do SIGAA centralizem e quebrem linha corretamente */
+body.sc-reskin-active #nomeTurma p {
+  text-align: center !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+body.sc-reskin-active .sc-header-info {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: var(--sc-space-2) !important;
+  flex-wrap: wrap !important;
+  font-family: var(--sc-font-family) !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+
+body.sc-reskin-active .sc-header-part {
+  font-size: var(--sc-font-size-sm) !important;
+  font-weight: var(--sc-font-weight-medium) !important;
+  color: var(--sc-color-text) !important;
+  text-align: center !important;
+  word-break: break-word !important;
+}
+
+body.sc-reskin-active .sc-header-sep {
+  color: var(--sc-color-border) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  user-select: none !important;
+  margin: 0 2px !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   7a. Sidebar esquerda — menu de navegação da turma
+   ══════════════════════════════════════════════════════════ */
+
+body.sc-reskin-active #barraEsquerda {
+  background: var(--sc-color-bg) !important;
+  border-right: 1px solid var(--sc-color-border) !important;
+}
+
+/* ── Cabeçalho "Menu Turma Virtual" (inline style com painel_bg.png) ─
+   background: VALUE !important sobrescreve qualquer inline style sem !important */
+body.sc-reskin-active #barraEsquerda td[style*="painel_bg"] {
+  background: var(--sc-color-nav-bg) !important;
+  color: var(--sc-color-nav-text) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+/* ── Acordeão RichFaces (rich-panelbar) — cabeçalhos de seção ─── */
+
+/* Seção inativa (collapsed) */
+body.sc-reskin-active .rich-panelbar-header {
+  background: var(--sc-color-bg-subtle) !important;
+  color: var(--sc-color-text-secondary) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  border-bottom: 1px solid var(--sc-color-border-subtle) !important;
+  cursor: pointer !important;
+}
+
+body.sc-reskin-active .rich-panelbar-header:hover {
+  background: var(--sc-color-bg-muted) !important;
+  color: var(--sc-color-text) !important;
+}
+
+/* Seção ativa (expanded) — destaque primário */
+body.sc-reskin-active .rich-panelbar-header-act {
+  background: var(--sc-color-primary-bg) !important;
+  color: var(--sc-color-primary) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  border-bottom: 1px solid var(--sc-color-border) !important;
+  border-left: 3px solid var(--sc-color-primary) !important;
+  cursor: pointer !important;
+}
+
+/* ── Itens de menu (div.itemMenu / div.itemAtivoMenu) ──────────── */
+
+/* Container do link — link envolve o div, então estilizamos o div */
+body.sc-reskin-active #barraEsquerda a {
+  display: block !important;
+  height: auto !important;
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+body.sc-reskin-active div.itemMenu {
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  font-weight: var(--sc-font-weight-normal) !important;
+  color: var(--sc-color-text) !important;
+  background: var(--sc-color-bg) !important;
+  border-bottom: 1px solid var(--sc-color-border-subtle) !important;
+  transition: background var(--sc-transition-fast), color var(--sc-transition-fast) !important;
+  cursor: pointer !important;
+  word-break: break-word !important;
+  text-align: center !important;
+  height: auto !important;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+body.sc-reskin-active div.itemMenu:hover {
+  background: var(--sc-color-bg-subtle) !important;
+  color: var(--sc-color-primary) !important;
+}
+
+body.sc-reskin-active div.itemAtivoMenu {
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  font-weight: var(--sc-font-weight-medium) !important;
+  color: var(--sc-color-primary) !important;
+  background: var(--sc-color-primary-bg) !important;
+  border-bottom: 1px solid var(--sc-color-border-subtle) !important;
+  border-left: 3px solid var(--sc-color-primary) !important;
+  cursor: pointer !important;
+  word-break: break-word !important;
+  text-align: center !important;
+  height: auto !important;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+/* ── Flex layout para mostrar todas as abas sempre visíveis ─────────────
+   ATENÇÃO: a classe rich-panelbar aparece em DOIS níveis:
+   - Outer (container): sem a classe rich-panelbar-interior  → recebe flex
+   - Inner (seções):    com a classe rich-panelbar-interior  → NÃO recebe flex
+   O seletor :not(.rich-panelbar-interior) garante que só o container externo
+   vire flex-column. A altura exata é aplicada pelo JS via forceStyle. */
+
+body.sc-reskin-active #barraEsquerda .rich-panelbar:not(.rich-panelbar-interior) {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* Seções do acordeão: cada uma shrink para sua altura natural (só o header
+   visível quando inativa, header + content quando ativa). */
+body.sc-reskin-active #barraEsquerda .rich-panelbar-interior {
+  flex-shrink: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Área de conteúdo da seção ativa: JS calcula e injeta a altura via forceStyle.
+   CSS apenas remove o inline height:438px do SIGAA (height:auto > inline sem !important).
+   max-height: none garante que o valor do JS não seja clampado. */
+body.sc-reskin-active #barraEsquerda .rich-panelbar-content-exterior {
+  height: auto !important;
+  max-height: none !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--sc-color-border) transparent !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Separador visual entre a área de itens e a próxima seção */
+body.sc-reskin-active .rich-panelbar-content-exterior + .rich-panelbar-header,
+body.sc-reskin-active .rich-panelbar-content-exterior + .rich-panelbar-header-act {
+  border-top: 2px solid var(--sc-color-border) !important;
+  margin-top: 0 !important;
+}
+
+/* Resetar resíduos de tabela na sidebar esquerda */
+body.sc-reskin-active #barraEsquerda td {
+  background: transparent !important;
+  font-family: var(--sc-font-family) !important;
+}
+
+/* O RichFaces fixa height no tr e table da sidebar via layout interno.
+   Quando itemMenu quebra linha (texto longo), tr/td/table precisam ser
+   auto para expandir e mostrar o texto completo com background correto. */
+body.sc-reskin-active #barraEsquerda td.rich-panelbar-content {
+  overflow: visible !important;
+  height: auto !important;
+}
+body.sc-reskin-active #barraEsquerda tr { height: auto !important; }
+body.sc-reskin-active #barraEsquerda table { height: auto !important; }
+
+body.sc-reskin-active #barraEsquerda form,
+body.sc-reskin-active #barraEsquerda .noticias {
+  background: transparent !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   7b. Sidebar direita — widgets (rich-stglpanel)
+   ══════════════════════════════════════════════════════════ */
+
+body.sc-reskin-active #barraDireita {
+  background: var(--sc-color-bg) !important;
+  border-left: 1px solid var(--sc-color-border) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  /* overflow-y: YUI Layout Manager controla o overflow dos painéis —
+     não forçar aqui para não interferir com o posicionamento calculado */
+}
+
+/* Cabeçalho de toggle da barra (inline style com painel_bg.png) */
+body.sc-reskin-active #barraDireita td[style*="painel_bg"],
+body.sc-reskin-active #barraDireita td[id="toggleDireita"] {
+  background: var(--sc-color-nav-bg) !important;
+  color: var(--sc-color-nav-text) !important;
+  font-family: var(--sc-font-family) !important;
+}
+
+/* Widget container
+   NOTA: seletores incluem #barraDireita para superar em especificidade
+   a regra "#barraDireita td { background: transparent !important }" abaixo,
+   que tem especificidade (0,1,1,2) vs nossas classes sem ID (0,0,2,1).
+   Com #barraDireita nas classes chega a (0,1,2,1) — vence. */
+body.sc-reskin-active #barraDireita .rich-stglpanel,
+body.sc-reskin-active #barraDireita .blocoDireita {
+  border-bottom: 1px solid var(--sc-color-border-subtle) !important;
+  background: var(--sc-color-bg) !important;
+}
+
+/* Widget header — headerBloco */
+body.sc-reskin-active #barraDireita .rich-stglpanel-header,
+body.sc-reskin-active #barraDireita .headerBloco {
+  background: var(--sc-color-bg-muted) !important;
+  color: var(--sc-color-text) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  border-bottom: 1px solid var(--sc-color-border-subtle) !important;
+  cursor: pointer !important;
+}
+
+body.sc-reskin-active #barraDireita .rich-stglpanel-header:hover,
+body.sc-reskin-active #barraDireita .headerBloco:hover {
+  background: var(--sc-color-bg-subtle) !important;
+  color: var(--sc-color-primary) !important;
+}
+
+/* Setas de collapse/expand — neutralizar tamanho das imagens GIF antigas */
+body.sc-reskin-active #barraDireita .rich-stglpanel-marker {
+  opacity: 0.5 !important;
+}
+
+body.sc-reskin-active #barraDireita .rich-stglpnl-marker img {
+  width: 10px !important;
+  height: 10px !important;
+  vertical-align: middle !important;
+}
+
+/* Widget body */
+body.sc-reskin-active #barraDireita .rich-stglpanel-body {
+  background: var(--sc-color-bg) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  color: var(--sc-color-text-secondary) !important;
+  padding: var(--sc-space-3) !important;
+  line-height: var(--sc-line-height-base) !important;
+}
+
+/* Resetar tabelas/células dentro dos widgets */
+body.sc-reskin-active #barraDireita table {
+  background: transparent !important;
+  width: 100% !important;
+}
+
+body.sc-reskin-active #barraDireita td,
+body.sc-reskin-active #barraDireita th {
+  background: transparent !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  color: var(--sc-color-text) !important;
+  vertical-align: top !important;
+}
+
+body.sc-reskin-active #barraDireita form,
+body.sc-reskin-active #barraDireita .noticias {
+  background: transparent !important;
+}
+
+/* Links na barra direita */
+body.sc-reskin-active #barraDireita a {
+  color: var(--sc-color-primary) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  text-decoration: none !important;
+}
+
+body.sc-reskin-active #barraDireita a:hover {
+  text-decoration: underline !important;
+}
+
+/* Widget "Atividades" — lista de tópicos recentes */
+body.sc-reskin-active #barraDireita .rich-stglpanel-body b {
+  font-weight: var(--sc-font-weight-medium) !important;
+  color: var(--sc-color-text-secondary) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  display: inline-block !important;
+  margin-bottom: 2px !important;
+}
+
+/* Widgets marcados como vazios pelo JS (sc-widget-empty) —
+   body ocultado via inline style no JS (sem !important) para que
+   o toggle nativo do SIGAA possa reexpandir ao clicar no header */
+body.sc-reskin-active #barraDireita .sc-widget-empty .rich-stglpanel-header,
+body.sc-reskin-active #barraDireita .sc-widget-empty .headerBloco {
+  color: var(--sc-color-text-muted) !important;
+  opacity: 0.6 !important;
+}
+
+body.sc-reskin-active #painel-usuario {
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  color: var(--sc-color-text) !important;
+}
+
+body.sc-reskin-active #menu-usuario {
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   7c. Centro da turma virtual — timeline de aulas
+   ══════════════════════════════════════════════════════════
+   Scroll fix: center pane tem overflow:auto próprio (scrollHeight 1600+
+   em clientHeight ~590). overscroll-behavior:contain impede chaining
+   para a página ao atingir o fim do conteúdo. */
+
+body.sc-reskin-active .ui-layout-pane-center {
+  overscroll-behavior: contain !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--sc-color-border) transparent !important;
+}
+
+/* Wrapper do conteúdo */
+body.sc-reskin-active #scroll-wrapper {
+  padding: var(--sc-space-4) var(--sc-space-6) !important;
+}
+
+/* ── Timeline de aulas (.topico-aula / .titulo) ──────────── */
+
+body.sc-reskin-active .topico-aula {
+  background: var(--sc-color-bg) !important;
+  border: 1px solid var(--sc-color-border-subtle) !important;
+  border-radius: var(--sc-radius-md) !important;
+  margin-bottom: var(--sc-space-3) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  box-shadow: var(--sc-shadow-sm) !important;
+  font-family: var(--sc-font-family) !important;
+}
+
+/* Cabeçalho do tópico (.titulo) */
+body.sc-reskin-active .topico-aula .titulo {
+  padding: var(--sc-space-3) var(--sc-space-4) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-base) !important;
+  font-weight: var(--sc-font-weight-medium) !important;
+  color: var(--sc-color-text) !important;
+  background: var(--sc-color-bg-subtle) !important;
+  border-bottom: 1px solid var(--sc-color-border-subtle) !important;
+  line-height: var(--sc-line-height-tight) !important;
+}
+
+/* Tópico "Não Haverá Aula" — texto em vermelho do SIGAA, preserva a cor semântica */
+body.sc-reskin-active .topico-aula .titulo a,
+body.sc-reskin-active .topico-aula .titulo span {
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-base) !important;
+}
+
+/* Conteúdo do tópico (descrição, materiais) */
+body.sc-reskin-active .topico-aula .conteudoAula,
+body.sc-reskin-active .topico-aula .conteudoTopico,
+body.sc-reskin-active .topico-aula > div:not(.titulo):not(.acao-topico) {
+  padding: var(--sc-space-3) var(--sc-space-4) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  color: var(--sc-color-text-secondary) !important;
+  line-height: var(--sc-line-height-base) !important;
+}
+
+/* Ocultar barra de ação lateral de professor (action dropdowns irrelevantes pro aluno) */
+body.sc-reskin-active .acao-topico {
+  display: none !important;
+}
+
+/* ── Área de conteúdo principal ─────────────────────────── */
+
+/* H3 — título de disciplina/página no topo do conteúdo */
+body.sc-reskin-active #conteudo h3,
+body.sc-reskin-active .ui-layout-pane-center h3 {
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-lg) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  color: var(--sc-color-text) !important;
+  line-height: var(--sc-line-height-tight) !important;
+  margin-bottom: var(--sc-space-3) !important;
+  padding-bottom: var(--sc-space-3) !important;
+  border-bottom: 2px solid var(--sc-color-border) !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+/* HR — divisor sutil no lugar do <hr> agressivo padrão */
+body.sc-reskin-active hr {
+  border: none !important;
+  border-top: 1px solid var(--sc-color-border-subtle) !important;
+  margin: var(--sc-space-4) 0 !important;
+  background: none !important;
+}
+
+/* ── Cabeçalhos de painel (substituem o azul-marinho original) ── */
+
+body.sc-reskin-active .tituloTabelaDiscente,
+body.sc-reskin-active td.tituloTabelaDiscente,
+body.sc-reskin-active th.tituloTabelaDiscente {
+  background: var(--sc-color-bg-muted) !important;
+  color: var(--sc-color-text) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid var(--sc-color-border) !important;
+}
+
+/* RichFaces panel headers */
+body.sc-reskin-active .rich-panel-header,
+body.sc-reskin-active .rich-panel-header td {
+  background: var(--sc-color-bg-muted) !important;
+  color: var(--sc-color-text) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  border-bottom: 1px solid var(--sc-color-border) !important;
+}
+
+body.sc-reskin-active .rich-panel-body {
+  background: var(--sc-color-bg) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+}
+
+/* tituloPortlet — títulos de portlets na turma */
+body.sc-reskin-active .tituloPortlet,
+body.sc-reskin-active td.tituloPortlet {
+  background: var(--sc-color-bg-muted) !important;
+  color: var(--sc-color-text) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* ── Linhas alternadas nas tabelas (linhaPar / linhaImpar) ── */
+
+body.sc-reskin-active .linhaPar td,
+body.sc-reskin-active tr.linhaPar > td {
+  background: var(--sc-color-bg) !important;
+}
+
+body.sc-reskin-active .linhaImpar td,
+body.sc-reskin-active tr.linhaImpar > td {
+  background: var(--sc-color-bg-subtle) !important;
+}
+
+/* Hover nas linhas de tabela */
+body.sc-reskin-active .tabelaRelatorio tbody tr:hover td,
+body.sc-reskin-active table.listing tbody tr:hover td {
+  background: var(--sc-color-primary-bg) !important;
+  transition: background var(--sc-transition-fast);
+}
+
+/* Bordas laterais de separação de bimestre — harmonizar */
+body.sc-reskin-active .tabelaRelatorio td[style*="border-right"],
+body.sc-reskin-active .tabelaRelatorio th[style*="border-right"] {
+  border-right-color: var(--sc-color-border) !important;
+}
+
+/* ── Seção "alunoSelecionado" — destaque da própria linha ── */
+
+body.sc-reskin-active tr.alunoSelecionado td {
+  background: var(--sc-color-primary-bg) !important;
+  font-weight: var(--sc-font-weight-medium) !important;
+}
+
+/* ── Rodapé na turma virtual ────────────────────────────── */
+
+body.sc-reskin-active #rodape {
+  background: var(--sc-color-bg-subtle) !important;
+  border-top: 1px solid var(--sc-color-border) !important;
+  color: var(--sc-color-text-muted) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   8. Barra de navegação principal — light navbar (#C4D2EB)
+   ══════════════════════════════════════════════════════════
+   REGRA INVIOLÁVEL: nunca alterar padding, display, border ou
+   margin nos itens do JSCookMenu. Apenas background-color,
+   color e font-* são seguros — qualquer outra propriedade
+   quebra o posicionamento calculado pelo JS dos submenus.
+
+   Classe real dos popups: ThemeOfficeSubMenu (confirmado via DevTools).
+   Visibilidade controlada por visibility:hidden/visible — não display.
+   Os submenus existem no DOM desde o carregamento, nunca são inseridos
+   depois — MutationObserver de childList não serve. */
+
+body.sc-reskin-active #menu-dropdown {
+  background: var(--sc-color-nav-bg) !important;
+  border-bottom: 2px solid var(--sc-color-nav-accent) !important;
+}
+
+body.sc-reskin-active #menu-dropdown table,
+body.sc-reskin-active #menu-dropdown tbody,
+body.sc-reskin-active #menu-dropdown tr {
+  background: transparent !important;
+}
+
+body.sc-reskin-active #menu-dropdown td {
+  background: transparent !important;
+}
+
+body.sc-reskin-active #menu-dropdown a {
+  color: var(--sc-color-nav-text) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  font-weight: var(--sc-font-weight-medium) !important;
+  text-decoration: none !important;
+  letter-spacing: 0.015em !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+/* ── Ícones antes dos itens de menu (GIFs do SIGAA) ─────────
+   Escondemos as imagens originais — nav fica text-only (mais limpo).
+   Os spans de texto ficam, dando padding adequado para o item. */
+body.sc-reskin-active #menu-dropdown td.ThemeOfficeMainItem img,
+body.sc-reskin-active #menu-dropdown span.ThemeOfficeMainFolderLeft img,
+body.sc-reskin-active #menu-dropdown td img[src*="/sigaa/img"] {
+  display: none !important;
+}
+
+/* Hover nos itens da barra principal. JSCookMenu usa onmouseover/onmouseout
+   para trocar classe — cobrimos a classe real + :hover como fallback. */
+body.sc-reskin-active #menu-dropdown td.ThemeOfficeMainItem:hover,
+body.sc-reskin-active #menu-dropdown td.ThemeOfficeMainItem_Over {
+  background: var(--sc-color-nav-hover) !important;
+}
+
+/* ── Submenus flutuantes (ThemeOfficeSubMenu) ────────────
+   - background sólido OBRIGATÓRIO: sem ele, conteúdo da página vaza por baixo
+   - z-index alto: aparecer acima do dashboard injetado e demais conteúdo
+   - NÃO usar overflow:hidden — clipa o dropdown
+   - NÃO usar border — afeta box model e desloca posição calculada pelo JS
+   - box-shadow e border-radius são seguros (não afetam layout)
+   - Hover: via JS em reskin.ts (mouseenter/mouseleave), pois inline !important
+     do JSCookMenu vence qualquer :hover de folha de estilos */
+
+body.sc-reskin-active div.ThemeOfficeSubMenu {
+  background-color: var(--sc-color-bg) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 0 0 var(--sc-radius-sm) var(--sc-radius-sm) !important;
+  z-index: 9999 !important;
+}
+
+/* Tabela e linhas: fundo explícito — herança do div pode não penetrar
+   células quando o SIGAA aplica background inline nos TDs. */
+body.sc-reskin-active div.ThemeOfficeSubMenu table,
+body.sc-reskin-active div.ThemeOfficeSubMenu tbody,
+body.sc-reskin-active div.ThemeOfficeSubMenu tr {
+  background-color: var(--sc-color-bg) !important;
+}
+
+body.sc-reskin-active div.ThemeOfficeSubMenu td {
+  background-color: var(--sc-color-bg) !important;
+  color: var(--sc-color-text) !important;
+}
+
+body.sc-reskin-active div.ThemeOfficeSubMenu a {
+  color: var(--sc-color-text) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  font-weight: var(--sc-font-weight-normal) !important;
+  text-decoration: none !important;
+}
+
+/* Hover via CSS :hover como reforço (JS em reskin.ts é a via principal) */
+body.sc-reskin-active div.ThemeOfficeSubMenu tr.ThemeOfficeMenuItem:hover td {
+  background-color: var(--sc-color-primary-bg) !important;
+}
+
+body.sc-reskin-active div.ThemeOfficeSubMenu tr.ThemeOfficeMenuItem:hover a {
+  color: var(--sc-color-primary) !important;
+}
+
+/* Separador entre grupos de itens */
+body.sc-reskin-active div.ThemeOfficeSubMenu td.ThemeOfficeMenuSplit {
+  background-color: var(--sc-color-border-subtle) !important;
+  height: 1px !important;
+}
+
+/* ── Perfil do aluno (sidebar direita do portal) ────────── */
+
+body.sc-reskin-active #perfil-docente {
+  background: var(--sc-color-bg-subtle) !important;
+}
+
+body.sc-reskin-active #perfil-docente table {
+  background: transparent !important;
+  border: none !important;
+  width: 100% !important;
+}
+
+body.sc-reskin-active #perfil-docente td {
+  background: transparent !important;
+  border: none !important;
+  padding: var(--sc-space-1) var(--sc-space-2) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  color: var(--sc-color-text-secondary) !important;
+  vertical-align: middle !important;
+}
+
+/* Foto de perfil — arredondar */
+body.sc-reskin-active #perfil-docente img {
+  border-radius: var(--sc-radius-md) !important;
+  border: 2px solid var(--sc-color-border) !important;
+  max-width: 80px !important;
+  height: auto !important;
+}
+
+/* Links dentro do perfil */
+body.sc-reskin-active #perfil-docente a {
+  color: var(--sc-color-primary) !important;
+  text-decoration: none !important;
+  font-size: var(--sc-font-size-sm) !important;
+}
+
+body.sc-reskin-active #perfil-docente a:hover {
+  text-decoration: underline !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   9. Boletim Escolar (Ensino → Emitir Boletim)
+   ══════════════════════════════════════════════════════════
+   Container: #relatorio-paisagem-container
+   Tabelas: table.listagem
+   Section headers: td com bg navy dentro de .listagem
+   Nota abaixo da média: td.nota.red */
+
+body.sc-reskin-active #relatorio-paisagem-container {
+  background: var(--sc-color-bg) !important;
+  font-family: var(--sc-font-family) !important;
+  max-width: 960px !important;
+  margin: 0 auto !important;
+  padding: var(--sc-space-4) !important;
+}
+
+/* Tabelas do boletim */
+body.sc-reskin-active #relatorio-paisagem-container table.listagem {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  margin-bottom: var(--sc-space-4) !important;
+  background: var(--sc-color-bg) !important;
+}
+
+/* Section headers (fundo navy original: "Dados do Aluno", "Dados dos Componentes") */
+body.sc-reskin-active #relatorio-paisagem-container table.listagem td[colspan],
+body.sc-reskin-active #relatorio-paisagem-container table.listagem th[colspan] {
+  background: var(--sc-color-bg-muted) !important;
+  color: var(--sc-color-text) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  border-bottom: 2px solid var(--sc-color-border) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* Cabeçalhos de coluna */
+body.sc-reskin-active #relatorio-paisagem-container table.listagem th {
+  background: var(--sc-color-bg-subtle) !important;
+  color: var(--sc-color-text-secondary) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  border-bottom: 2px solid var(--sc-color-border) !important;
+  white-space: nowrap !important;
+}
+
+/* Células de dados */
+body.sc-reskin-active #relatorio-paisagem-container table.listagem td {
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  border-bottom: 1px solid var(--sc-color-border-subtle) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  color: var(--sc-color-text) !important;
+  background: var(--sc-color-bg) !important;
+}
+
+/* Divisor de ano (td.titulo) — cinza sutil */
+body.sc-reskin-active #relatorio-paisagem-container td.titulo {
+  background: var(--sc-color-bg-subtle) !important;
+  color: var(--sc-color-text-secondary) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  text-align: center !important;
+}
+
+/* Nota abaixo da média — manter vermelho mas com cor do sistema */
+body.sc-reskin-active #relatorio-paisagem-container td.nota.red {
+  color: var(--sc-color-danger) !important;
+  font-weight: var(--sc-font-weight-medium) !important;
+}
+
+/* Nome da disciplina */
+body.sc-reskin-active #relatorio-paisagem-container td.disciplina {
+  font-weight: var(--sc-font-weight-medium) !important;
+  color: var(--sc-color-text) !important;
+}
+
+/* Botões voltar/imprimir */
+body.sc-reskin-active #relatorio-paisagem-container td.voltar a,
+body.sc-reskin-active #relatorio-paisagem-container td.naoImprimir a {
+  color: var(--sc-color-primary) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  text-decoration: none !important;
+}
+
+body.sc-reskin-active #relatorio-paisagem-container td.voltar a:hover,
+body.sc-reskin-active #relatorio-paisagem-container td.naoImprimir a:hover {
+  text-decoration: underline !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   10. Acessibilidade — foco visível universal
+   ══════════════════════════════════════════════════════════
+   O SIGAA não tem foco visível na maioria dos elementos.
+   Adicionamos apenas dentro do container principal para
+   não interferir com estilos de foco do próprio browser fora
+   da extensão. */
+
+body.sc-reskin-active #conteudo a:focus-visible,
+body.sc-reskin-active #conteudo button:focus-visible,
+body.sc-reskin-active #conteudo input:focus-visible,
+body.sc-reskin-active #conteudo select:focus-visible,
+body.sc-reskin-active #conteudo textarea:focus-visible {
+  outline: 2px solid var(--sc-color-primary);
+  outline-offset: 2px;
+  border-radius: var(--sc-radius-sm);
+}
+
+/* ══════════════════════════════════════════════════════════
+   10. Responsividade — 360px mínimo
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  body.sc-reskin-active #conteudo {
+    padding: var(--sc-space-2);
+  }
+
+  /* Colapsar layout de 2 colunas do portal */
+  body.sc-reskin-active #main-docente {
+    width: 100% !important;
+    float: none !important;
+  }
+
+  body.sc-reskin-active #agenda-docente {
+    width: 100% !important;
+    float: none !important;
+    clear: both;
+  }
+
+  body.sc-reskin-active #turmas-portal table th,
+  body.sc-reskin-active #turmas-portal table td {
+    padding: var(--sc-space-1) var(--sc-space-2);
+    font-size: var(--sc-font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  /* Overflow horizontal com scroll para tabelas largas */
+  body.sc-reskin-active #turmas-portal {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.sc-reskin-active .tabelaRelatorio {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.sc-reskin-active #conteudo {
+    font-size: var(--sc-font-size-sm);
+  }
+}

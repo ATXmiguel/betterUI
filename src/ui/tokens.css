@@ -1,0 +1,84 @@
+/**
+ * Design tokens — betterUI
+ * Neutral palette. Brand identity TBD (will be defined via Claude Design).
+ * All tokens prefixed sc- to avoid collision with SIGAA styles.
+ */
+
+:root {
+  /* ── Typography ─────────────────────────────────── */
+  --sc-font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --sc-font-mono: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+
+  --sc-font-size-xs:   0.75rem;    /* 12px */
+  --sc-font-size-sm:   0.8125rem;  /* 13px */
+  --sc-font-size-base: 0.875rem;   /* 14px */
+  --sc-font-size-md:   1rem;       /* 16px */
+  --sc-font-size-lg:   1.125rem;   /* 18px */
+  --sc-font-size-xl:   1.25rem;    /* 20px */
+  --sc-font-size-2xl:  1.5rem;     /* 24px */
+
+  --sc-line-height-tight:   1.25;
+  --sc-line-height-base:    1.5;
+  --sc-line-height-relaxed: 1.75;
+
+  --sc-font-weight-normal: 400;
+  --sc-font-weight-medium: 500;
+  --sc-font-weight-bold:   600;
+
+  /* ── Spacing ─────────────────────────────────────── */
+  --sc-space-1:  0.25rem;   /*  4px */
+  --sc-space-2:  0.5rem;    /*  8px */
+  --sc-space-3:  0.75rem;   /* 12px */
+  --sc-space-4:  1rem;      /* 16px */
+  --sc-space-5:  1.25rem;   /* 20px */
+  --sc-space-6:  1.5rem;    /* 24px */
+  --sc-space-8:  2rem;      /* 32px */
+  --sc-space-10: 2.5rem;    /* 40px */
+
+  /* ── Border radius ───────────────────────────────── */
+  --sc-radius-sm: 4px;
+  --sc-radius-md: 8px;
+  --sc-radius-lg: 12px;
+
+  /* ── Colors — neutral palette ────────────────────── */
+  --sc-color-bg:             #ffffff;
+  --sc-color-bg-subtle:      #f8f9fa;
+  --sc-color-bg-muted:       #f1f3f5;
+  --sc-color-border:         #dee2e6;
+  --sc-color-border-subtle:  #e9ecef;
+
+  --sc-color-text:           #212529;
+  --sc-color-text-secondary: #495057;
+  --sc-color-text-muted:     #868e96;
+
+  --sc-color-primary:        #1971c2;
+  --sc-color-primary-hover:  #1864ab;
+  --sc-color-primary-bg:     #d0ebff;
+
+  --sc-color-success:        #2b8a3e;
+  --sc-color-warning:        #e67700;
+  --sc-color-danger:         #c92a2a;
+
+  /* ── Nav bar (light theme — azul CEFET) ─────────────── */
+  --sc-color-nav-bg:         #C4D2EB;  /* azul claro — fundo da barra */
+  --sc-color-nav-accent:     #004C84;  /* azul escuro — linha de destaque na base */
+  --sc-color-nav-text:       #004C84;  /* azul escuro — texto dos itens */
+  --sc-color-nav-text-muted: #1971c2;  /* azul médio — texto secundário */
+  --sc-color-nav-hover:      rgba(0, 76, 132, 0.12); /* hover sutil sobre fundo claro */
+  --sc-color-nav-active:     rgba(0, 76, 132, 0.20); /* item ativo */
+
+  /* ── Shadows ─────────────────────────────────────── */
+  --sc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --sc-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* ── Transitions ─────────────────────────────────── */
+  --sc-transition-fast: 150ms ease;
+  --sc-transition-base: 250ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sc-transition-fast: 0ms;
+    --sc-transition-base: 0ms;
+  }
+}

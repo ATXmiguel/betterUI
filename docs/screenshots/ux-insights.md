@@ -1,5 +1,27 @@
 # Insights de UX — coletados durante o mapeamento
 
+---
+
+## Estrutura real do JSCookMenu (ThemeOffice) — 2026-08-07
+
+Confirmado via DevTools na instância CEFET-MG v4.17.0cefet178:
+
+| Elemento | Classe CSS real |
+|---|---|
+| Item da barra principal (TD) | `ThemeOfficeMainItem` |
+| Texto do item com submenu | `ThemeOfficeMainFolderText` |
+| Container do popup flutuante | `ThemeOfficeSubMenu` |
+| Tabela interna do popup | `ThemeOfficeSubMenuTable` |
+| Linha de item no popup (TR) | `ThemeOfficeMenuItem` |
+| Célula de texto | `ThemeOfficeMenuItemText` |
+| Separador | `ThemeOfficeMenuSplit` |
+
+- **Visibilidade**: `visibility:hidden` ↔ `visibility:visible` (NÃO `display`)
+- **Os 23 divs `.ThemeOfficeSubMenu` existem no DOM desde o carregamento** — MutationObserver de `childList` nunca dispara
+- IDs: `cmSubMenuID1` … dentro de `#menu_form_menu_discente_discente_menu` ⊂ `#menu-dropdown`
+- Fundo original: `rgba(0,0,0,0)` — background sólido é obrigatório
+- z-index original: 100
+
 Insumo para a fase de design de telas. Nao e documentacao tecnica.
 
 ---

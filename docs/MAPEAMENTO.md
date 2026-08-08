@@ -710,6 +710,95 @@ Não mapeado via rede (não clicamos em nenhum arquivo). Pelo padrão do onclick
 
 ---
 
+---
+
+## Tela 8 — Boletim Escolar (Ensino → Emitir Boletim)
+
+**Para que serve:** visão consolidada de todas as disciplinas do semestre em uma única página — bimestres, recuperações, faltas, nota final e situação. Diferente do "Ver Notas" de cada turma virtual (que mostra só uma disciplina por vez), o boletim agrega tudo.
+
+**Como chegar:**
+1. Portal do aluno → menu superior "Ensino" → "Emitir Boletim"
+2. O menu usa JSCookMenu — o item é `tr.ThemeOfficeMenuItem` com `td.ThemeOfficeMenuItemText = "Emitir Boletim"`
+3. O clique aciona `cmItemMouseDown(this, 1)` que submete um form oculto do JSCookMenu
+
+**URL resultante:** permanece `https://sig.cefetmg.br/sigaa/portais/discente/discente.jsf` (JSF renderiza o boletim inline no mesmo endpoint)
+
+**Tipo:** leitura — gera PDF via `window.print()` (não há download automático)
+
+**Frequência de uso:** por semestre (ou quando o aluno quer uma visão geral rápida)
+
+---
+
+### Estrutura HTML principal
+
+Container raiz: `#relatorio-paisagem-container`
+
+```
+#relatorio-paisagem-container
+  table.listagem          ← cabeçalho: logo CEFET-MG, título, data de emissão, logo DTI
+  h2 (ou texto em tabela) ← "Boletim Escolar - 2026"
+  table.listagem          ← Dados do Aluno
+    tr > td (colspan, dark navy bg) ← "Dados do Aluno" (section header)
+    tr > td.bold          ← "Aluno(a):", "Matrícula:", "Turma de Entrada:", etc.
+  table.listagem          ← Dados dos Componentes Curriculares
+    tr > td.titulo        ← "2026" (divisor de ano, bg cinza rgb(232,232,232))
+    tr > th               ← "COMPONENTE CURRICULAR", "1o. Bimestre", ..., "Situação"
+    tr > td.disciplina    ← nome da disciplina
+    tr > td.nota          ← valor da nota (preto)
+    tr > td.nota.red      ← valor da nota abaixo da média (vermelho)
+    tr > td               ← faltas (número)
+  table.listagem          ← rodapé
+    td.voltar             ← link "javascript:history.back()"
+    td.naoImprimir        ← link "window.print()"
+```
+
+**Observação:** `td.naoImprimir` e `td.voltar` têm `display: none` no `@media print`.
+
+---
+
+### Seletores
+
+| Dado | Seletor | Observação |
+|---|---|---|
+| Container raiz | `#relatorio-paisagem-container` | presente só no boletim |
+| Tabela principal | `#relatorio-paisagem-container table.listagem` | múltiplas instâncias |
+| Disciplina | `td.disciplina` | código + nome da disciplina |
+| Nota normal | `td.nota` | cor preta |
+| Nota abaixo da média | `td.nota.red` | cor vermelha inline |
+| Divisor de ano | `td.titulo` | bg `rgb(232,232,232)` |
+| Section headers | `td[colspan]` com bg navy inside `.listagem` | "Dados do Aluno", "Dados dos Componentes Curriculares" |
+| Botão voltar | `td.voltar > a` | `href="javascript:history.back()"` |
+| Botão imprimir | `td.naoImprimir > a` | `onclick="window.print()"` |
+
+---
+
+### Trigger de navegação (JSCookMenu)
+
+O menu "Ensino" é um `ThemeOfficeMenu`. Para acionar "Emitir Boletim" programaticamente:
+
+```js
+// Encontrar e clicar no item
+const item = [...document.querySelectorAll('.ThemeOfficeMenuItem')]
+  .find(el => el.querySelector('td.ThemeOfficeMenuItemText')?.textContent?.trim() === 'Emitir Boletim');
+item?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+item?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+```
+
+Não usa `jscook_action` diretamente no HTML — a ação está registrada no array JS do JSCookMenu. O form submetido provavelmente é `menu:form_menu_discente` com ação `portalDiscente.emitirBoletim` (não confirmado via DevTools — o submit ocorre dentro do JSCookMenu runtime).
+
+---
+
+### Crítica de interface
+
+- **Dado valioso enterrado:** é a única view com todas as disciplinas lado a lado — mas está escondida em "Ensino → Emitir Boletim", nome que sugere emissão de documento, não consulta.
+- **Notas em vermelho sem contexto:** `td.nota.red` não explica o critério de corte (variável por disciplina no SIGAA técnico).
+- **Sem bimestre atual destacado:** todos os bimestres têm o mesmo peso visual; o bimestre mais recente deveria ter destaque.
+- **Layout paisagem:** o container usa estilo de impressão (`relatorio-paisagem`), não responsivo — em mobile fica cortado.
+- **Nomes de disciplina longos:** "LABORATÓRIO DE FUNDAMENTOS DE INFORMÁTICA" quebra em 2 linhas na tabela sem elipsis.
+- **Só o ano vigente:** não mostra histórico de anos anteriores nesta tela.
+
+---
+
 ## Status final do mapeamento
 
 | # | Tela | Status | URL | Fixture |
@@ -721,5 +810,6 @@ Não mapeado via rede (não clicamos em nenhum arquivo). Pelo padrão do onclick
 | 5 | Horário / Grade | ✅ | (embutido no portal — col `Horário` da tabela de turmas) | — |
 | 6 | Avisos / Notícias | ✅ | `ava/NoticiaTurma/listar.jsf` | T-06 |
 | 7 | Materiais / Arquivos | ✅ | `ava/ArquivoTurma/listar_discente.jsf` | T-07 |
+| 8 | Boletim Escolar | ✅ | `discente.jsf` (renderizado inline) | — |
 
 **Mapeamento completo.** A Fase 1 pode começar.
