@@ -115,6 +115,22 @@ export const SEL = {
     valida: (_el: Element) => true,
   },
 
+  acoes_turma: {
+    id: 'acoes_turma',
+    descricao: 'Form com os 5 botões de ação da turma virtual (Menu Discente, Imprimir, etc.)',
+    primario: '#formAcoesTurma',
+    fallbacks: ['form[id="formAcoesTurma"]'],
+    valida: (_el: Element) => true,
+  },
+
+  logo_sigaa: {
+    id: 'logo_sigaa',
+    descricao: 'H1 "CEFET-MG - SIGAA" no cabeçalho — presente no portal e nas turmas virtuais',
+    primario: '#info-sistema h1',
+    fallbacks: ['#cabecalho h1', 'h1'],
+    valida: (el: Element) => el.textContent?.includes('CEFET') ?? false,
+  },
+
   // ── Turma virtual (genérico) ─────────────────────────────────────────
 
   form_menu_turma: {

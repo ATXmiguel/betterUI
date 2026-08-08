@@ -47,6 +47,9 @@ const htmlRestores: HTMLElement[] = [];
 // Registro de MutationObservers da sidebar esquerda (accordion watch)
 const leftSidebarObservers: MutationObserver[] = [];
 
+// Registro de event listeners adicionados ao DOM (para remoção em removeReskin)
+const domListeners: Array<{ el: EventTarget; type: string; fn: EventListener }> = [];
+
 // Corpos de widgets da barra direita ocultados via JS (sem !important — toggle nativo pode desfazer)
 const hiddenWidgetBodies: HTMLElement[] = [];
 
@@ -237,6 +240,32 @@ function unwatchNavDropdown(): void {
   navPopupCleanups.length = 0;
 }
 
+const DISCENTE_URL = 'https://sig.cefetmg.br/sigaa/portais/discente/discente.jsf';
+
+/**
+ * Torna o h1 "CEFET-MG - SIGAA" clicável em qualquer página do SIGAA,
+ * navegando para o portal do discente. Substitui a função do botão "casinha"
+ * que é ocultado junto com os demais botões de ação da turma virtual.
+ */
+function makeLogoClickable(): void {
+  try {
+    const h1 = resolve(SEL.logo_sigaa);
+    if (!h1) return;
+
+    const handler: EventListener = () => {
+      window.location.href = DISCENTE_URL;
+    };
+
+    addClass(h1, 'sc-logo-link');
+    h1.addEventListener('click', handler);
+    domListeners.push({ el: h1, type: 'click', fn: handler });
+
+    log.debugSync('makeLogoClickable: h1 configurado');
+  } catch {
+    // Silencioso
+  }
+}
+
 export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
   // Gate: ativa o CSS via classe no body
   document.body.classList.add('sc-reskin-active');
@@ -245,6 +274,7 @@ export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
   log.debugSync('reskin aplicado — rota:', route, '— versão:', version);
 
   watchNavDropdown();
+  makeLogoClickable();
 
   // fixFullWidth só no portal — as turmas virtuais usam YUI Layout Manager
   // com posicionamento em px calculado uma vez no carregamento.
@@ -549,6 +579,15 @@ function applyTurmaVirtualReskin(): void {
   // Scoped para turma virtual — o portal precisa de scroll normal do body.
   addClass(document.body, 'sc-layout-yui');
   simplifyTurmaHeader();
+
+  // Esconder os 5 botões de ação (Menu Discente, Imprimir, Paginados, Trocar Turma, Opções).
+  // A função do "Menu Discente" (casinha) é transferida para o clique no h1 "CEFET-MG - SIGAA".
+  const acoesTurma = resolve(SEL.acoes_turma);
+  if (acoesTurma) {
+    addClass(acoesTurma, 'sc-hidden');
+    log.debugSync('formAcoesTurma ocultado');
+  }
+
   watchLeftSidebarAccordion();
   reverseTopics();
   collapseEmptyRightWidgets();
@@ -609,6 +648,12 @@ function collapseEmptyRightWidgets(): void {
 
 export function removeReskin(): void {
   unwatchNavDropdown();
+
+  // Remover event listeners adicionados ao DOM
+  for (const { el, type, fn } of domListeners) {
+    try { el.removeEventListener(type, fn); } catch { /* silencioso */ }
+  }
+  domListeners.length = 0;
 
   // Desconectar observers da sidebar esquerda
   for (const obs of leftSidebarObservers) obs.disconnect();

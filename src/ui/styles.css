@@ -105,6 +105,17 @@ body.sc-reskin-active .sc-hidden {
   display: none !important;
 }
 
+/* Logo "CEFET-MG - SIGAA" clicável — qualquer página */
+body.sc-reskin-active .sc-logo-link {
+  cursor: pointer !important;
+  transition: opacity 150ms ease;
+  user-select: none;
+}
+
+body.sc-reskin-active .sc-logo-link:hover {
+  opacity: 0.65;
+}
+
 /* ══════════════════════════════════════════════════════════
    3. Tabela de turmas do portal
    ══════════════════════════════════════════════════════════
