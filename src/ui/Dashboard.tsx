@@ -55,6 +55,24 @@ function FreqLimite({ frequencia }: { frequencia: FrequenciaTurma }) {
   );
 }
 
+// ── Navegação para turma virtual ──────────────────────────────────────────────
+
+/**
+ * Clica no link JSF do SIGAA correspondente à turma, navegando para a
+ * turma virtual. Delega inteiramente ao mecanismo do SIGAA — sem POST forjado.
+ */
+function navigateToTurmaVirtual(turma: TurmaInfo): void {
+  if (!turma.frontEndIdTurma) return;
+  const forms = document.querySelectorAll('form[id^="form_acessarTurmaVirtual"]');
+  for (const form of forms) {
+    const link = form.querySelector('a[onclick]') as HTMLAnchorElement | null;
+    if (link?.getAttribute('onclick')?.includes(turma.frontEndIdTurma)) {
+      link.click();
+      return;
+    }
+  }
+}
+
 // ── Componentes ───────────────────────────────────────────────────────────────
 
 function CourseCard({
@@ -79,9 +97,14 @@ function CourseCard({
     <div class="sc-card">
       <div class="sc-card-accent" style={{ background: color }} aria-hidden="true" />
       <div class="sc-card-body">
-        <h3 class="sc-card-title" title={turma.nome}>
+        <button
+          class={`sc-card-title${turma.frontEndIdTurma ? ' sc-card-title-link' : ''}`}
+          type="button"
+          title={turma.frontEndIdTurma ? `Abrir turma virtual de ${turma.nome}` : turma.nome}
+          onClick={() => navigateToTurmaVirtual(turma)}
+        >
           {turma.nome}
-        </h3>
+        </button>
 
         <div class="sc-card-meta">
           {schedule && (
@@ -210,7 +233,17 @@ function ProgressBar({ info }: { info: ProgressInfo; onCancel: () => void }) {
   );
 }
 
-function Dashboard({ matricula, nomeAlunoInicial }: { matricula: string; nomeAlunoInicial: string | null }) {
+const SCHEMA_VERSION_UI = 1;
+
+function Dashboard({
+  matricula,
+  nomeAlunoInicial,
+  turmasIniciais,
+}: {
+  matricula: string;
+  nomeAlunoInicial: string | null;
+  turmasIniciais: TurmaInfo[];
+}) {
   const [data, setData] = useState<ColecaoCompleta | null>(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<ProgressInfo | null>(null);
@@ -218,7 +251,22 @@ function Dashboard({ matricula, nomeAlunoInicial }: { matricula: string; nomeAlu
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    loadColecao().then(setData);
+    loadColecao().then(cached => {
+      if (cached) {
+        setData(cached);
+      } else if (turmasIniciais.length > 0) {
+        // Mostra os cards imediatamente com estrutura mas sem dados
+        setData({
+          coletadoEm: 0,
+          matricula,
+          nomeAluno: nomeAlunoInicial ?? '',
+          turmas: turmasIniciais,
+          notas: {},
+          frequencia: {},
+          versaoSchema: SCHEMA_VERSION_UI,
+        });
+      }
+    });
   }, []);
 
   const handleCollect = useCallback(async () => {
@@ -234,6 +282,12 @@ function Dashboard({ matricula, nomeAlunoInicial }: { matricula: string; nomeAlu
         onProgress: setProgress,
         onError: (msg, course) => {
           setErrors(prev => [...prev, `${course}: ${msg}`]);
+        },
+        onPartialData: (notas, frequencia) => {
+          setData(prev => prev
+            ? { ...prev, notas: { ...notas }, frequencia: { ...frequencia }, coletadoEm: Date.now() }
+            : prev
+          );
         },
       });
       setData(result);
@@ -274,7 +328,8 @@ function Dashboard({ matricula, nomeAlunoInicial }: { matricula: string; nomeAlu
 
   const handleClear = useCallback(async () => {
     await clearColecao();
-    setData(null);
+    // Preserva os cards (turmas do DOM) — apaga só notas/frequência coletadas
+    setData(prev => prev ? { ...prev, notas: {}, frequencia: {}, coletadoEm: 0 } : prev);
   }, []);
 
   const firstName = data?.nomeAluno?.split(' ')[0] ?? nomeAlunoInicial?.split(' ')[0] ?? '';
@@ -287,7 +342,7 @@ function Dashboard({ matricula, nomeAlunoInicial }: { matricula: string; nomeAlu
           <h2 class="sc-greeting">
             Olá{firstName ? `, ${firstName}` : ''}!
           </h2>
-          {data && (
+          {data && data.coletadoEm > 0 && (
             <span class="sc-cache-age" title="Última atualização dos dados">
               {cacheAge(data.coletadoEm)}
             </span>
@@ -310,6 +365,8 @@ function Dashboard({ matricula, nomeAlunoInicial }: { matricula: string; nomeAlu
             </button>
           )}
           {data && !loading && (
+            Object.keys(data.notas).length > 0 || Object.keys(data.frequencia).length > 0
+          ) && (
             <button
               class="sc-btn sc-btn-danger"
               type="button"
@@ -595,6 +652,29 @@ const DASHBOARD_CSS = `
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* Reset de estilos de botão */
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.sc-card-title-link {
+  cursor: pointer;
+}
+
+.sc-card-title-link:hover {
+  color: #1971c2;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sc-card-title-link:focus-visible {
+  outline: 2px solid #1971c2;
+  outline-offset: 2px;
+  border-radius: 3px;
 }
 
 .sc-card-meta {
@@ -907,6 +987,7 @@ export function mountDashboard(
   container: Element,
   matricula: string,
   nomeAlunoInicial: string | null = null,
+  turmasIniciais: TurmaInfo[] = [],
 ): () => void {
   // Remover instância anterior se existir
   unmountDashboard();
@@ -927,7 +1008,7 @@ export function mountDashboard(
   const mountPoint = document.createElement('div');
   shadow.appendChild(mountPoint);
 
-  render(h(Dashboard, { matricula, nomeAlunoInicial }), mountPoint);
+  render(h(Dashboard, { matricula, nomeAlunoInicial, turmasIniciais }), mountPoint);
 
   dashboardCleanup = () => {
     render(null, mountPoint);

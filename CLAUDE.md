@@ -149,7 +149,7 @@ Mecânica: cada página contém um `<input name="javax.faces.ViewState">`. Um po
 Regras de implementação, todas obrigatórias:
 
 - **Fila estritamente sequencial.** Uma requisição por vez. Paralelismo corrompe o estado da sessão e derruba o aluno.
-- **Intervalo mínimo de 800ms** entre requisições.
+- **Intervalo mínimo de 500ms** entre requisições.
 - **Máximo de requisições por coleta**: configurável, padrão baixo. Estourou, aborta e mostra o que já tem.
 - **Circuit breaker**: 2 falhas consecutivas encerram a coleta inteira.
 - **Cancelável**: `AbortController` ligado a um botão visível de cancelar.

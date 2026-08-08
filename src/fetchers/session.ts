@@ -61,7 +61,7 @@ export class SessionQueue {
   private requestCount = 0;
   private aborted = false;
 
-  private readonly MIN_DELAY_MS = 800;
+  private readonly MIN_DELAY_MS = 500;
   private readonly MAX_CONSECUTIVE_FAILURES = 2;
   private readonly maxRequests: number;
   private readonly signal: AbortSignal;

@@ -163,6 +163,14 @@ export interface ProgressInfo {
 export interface CollectOptions {
   onProgress: (info: ProgressInfo) => void;
   onError: (error: string, courseName: string) => void;
+  /**
+   * Chamado após cada turma coletada com os dados acumulados até aquele ponto.
+   * Permite atualizar o UI em tempo real sem esperar o fim da coleta.
+   */
+  onPartialData?: (
+    notas: Record<string, NotasTurma>,
+    frequencia: Record<string, FrequenciaTurma>,
+  ) => void;
   signal: AbortSignal;
   /** Máximo de requisições HTTP. Padrão: 40 */
   maxRequests?: number;

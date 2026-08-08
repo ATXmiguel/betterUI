@@ -116,6 +116,7 @@ export async function collectAll(options: CollectOptions): Promise<ColecaoComple
     }
 
     await savePartial();
+    options.onPartialData?.({ ...notas }, { ...frequencia });
   }
 
   const result = buildResult();

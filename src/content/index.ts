@@ -15,6 +15,8 @@ import { applyReskin, removeReskin } from '@/ui/reskin';
 import { mountToggle } from '@/ui/toggle';
 import { mountDashboard, unmountDashboard } from '@/ui/Dashboard';
 import { clearOnLogout } from '@/storage/cache';
+import { parseTurmas } from '@/parsers/turmas';
+import type { TurmaInfo } from '@/types';
 
 safe(async () => {
   await initLog();
@@ -58,7 +60,7 @@ safe(async () => {
       log.debugSync('dashboard: container não encontrado');
       return;
     }
-    mountDashboard(container, matricula, readNomeAluno());
+    mountDashboard(container, matricula, readNomeAluno(), readTurmasDom());
     dashboardMounted = true;
     log.debugSync('dashboard: montado');
   }
@@ -84,6 +86,18 @@ safe(async () => {
 
   log.debug('bootstrap concluído');
 });
+
+/**
+ * Extrai a lista de turmas do DOM do portal sem nenhum fetch,
+ * para exibir os cards imediatamente ao carregar a página.
+ */
+function readTurmasDom(): TurmaInfo[] {
+  try {
+    return parseTurmas(document.documentElement.outerHTML);
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Lê o nome do aluno já visível no portal, para saudação instantânea
