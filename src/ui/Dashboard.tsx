@@ -79,15 +79,14 @@ function navigateToAtualizacao(idTurma: string | null): void {
 // ── Card de atualizações recentes ─────────────────────────────────────────────
 
 function AtualizacoesCard({ items }: { items: AtualizacaoItem[] }) {
+  const [expanded, setExpanded] = useState(false);
+
   if (items.length === 0) return null;
 
-  // Formata "DD/MM/AAAA" → "DD/MM"
   function shortDate(d: string): string {
     return d.slice(0, 5);
   }
 
-  // Extrai o prefixo do tipo ("Nova Notícia", "Novo Tópico de Aula", etc.)
-  // e o restante separadamente para poder estilizá-los
   function splitTipo(tipo: string): [string, string] {
     const colonIdx = tipo.indexOf(':');
     if (colonIdx === -1) return [tipo, ''];
@@ -96,34 +95,45 @@ function AtualizacoesCard({ items }: { items: AtualizacaoItem[] }) {
 
   return (
     <div class="sc-feed-card">
-      <div class="sc-feed-header">
+      <button
+        class="sc-feed-header"
+        type="button"
+        onClick={() => setExpanded(e => !e)}
+        aria-expanded={expanded}
+      >
         <span class="sc-feed-title">Atualizações recentes</span>
-        <span class="sc-feed-count">{items.length} {items.length === 1 ? 'item' : 'itens'}</span>
-      </div>
-      <ul class="sc-feed-list">
-        {items.map((item, i) => {
-          const [tipoLabel, tipoDesc] = splitTipo(item.tipo);
-          return (
-            <li class="sc-feed-item" key={i}>
-              <span class="sc-feed-date">{shortDate(item.data)}</span>
-              <div class="sc-feed-content">
-                <button
-                  class="sc-feed-turma"
-                  type="button"
-                  onClick={() => navigateToAtualizacao(item.idTurma)}
-                  title={`Abrir turma virtual de ${item.nomeTurma}`}
-                >
-                  {item.nomeTurma}
-                </button>
-                <span class="sc-feed-tipo">
-                  {tipoLabel && <span class="sc-feed-tipo-label">{tipoLabel}</span>}
-                  {tipoDesc && <span class="sc-feed-tipo-desc">{tipoDesc ? `: ${tipoDesc}` : ''}</span>}
-                </span>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+        <span class="sc-feed-header-right">
+          <span class="sc-feed-count">{items.length} {items.length === 1 ? 'item' : 'itens'}</span>
+          <span class={`sc-feed-chevron${expanded ? ' sc-feed-chevron-open' : ''}`}>▼</span>
+        </span>
+      </button>
+
+      {expanded && (
+        <ul class="sc-feed-list">
+          {items.map((item, i) => {
+            const [tipoLabel, tipoDesc] = splitTipo(item.tipo);
+            return (
+              <li class="sc-feed-item" key={i}>
+                <span class="sc-feed-date">{shortDate(item.data)}</span>
+                <div class="sc-feed-content">
+                  <button
+                    class="sc-feed-turma"
+                    type="button"
+                    onClick={() => navigateToAtualizacao(item.idTurma)}
+                    title={`Abrir turma virtual de ${item.nomeTurma}`}
+                  >
+                    {item.nomeTurma}
+                  </button>
+                  <span class="sc-feed-tipo">
+                    {tipoLabel && <span class="sc-feed-tipo-label">{tipoLabel}</span>}
+                    {tipoDesc && <span class="sc-feed-tipo-desc">{tipoDesc ? `: ${tipoDesc}` : ''}</span>}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
@@ -1044,6 +1054,25 @@ const DASHBOARD_CSS = `
   justify-content: space-between;
   padding: 12px 16px 10px;
   border-bottom: 1px solid #f1f3f5;
+  width: 100%;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 150ms ease;
+}
+
+.sc-feed-header:hover {
+  background: #fffbf5;
+}
+
+.sc-feed-header:focus-visible {
+  outline: 2px solid #f08c00;
+  outline-offset: -2px;
+  border-radius: 8px 8px 0 0;
 }
 
 .sc-feed-title {
@@ -1054,9 +1083,26 @@ const DASHBOARD_CSS = `
   letter-spacing: 0.04em;
 }
 
+.sc-feed-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .sc-feed-count {
   font-size: 11px;
   color: #adb5bd;
+}
+
+.sc-feed-chevron {
+  font-size: 9px;
+  color: #adb5bd;
+  display: inline-block;
+  transition: transform 200ms ease;
+}
+
+.sc-feed-chevron-open {
+  transform: rotate(180deg);
 }
 
 .sc-feed-list {
