@@ -285,37 +285,11 @@ function applyPortalReskin(): void {
     }
   }
 
-  // 2. Mover #turmas-portal para acima da dobra
-  //    O portal usa float, então usamos insertBefore em vez de CSS order.
-  //    Destino: primeiro filho de #conteudo (ou do pai comum das seções).
+  // 2. Ocultar #turmas-portal — substituído pelo dashboard de cards
   const turmas = resolve(SEL.turmas_portal);
-  const conteudo = resolve(SEL.conteudo);
-
-  if (turmas && conteudo && turmas.parentNode === conteudo) {
-    const firstChild = conteudo.firstChild;
-    if (firstChild && firstChild !== turmas) {
-      moveNodeBefore(turmas, conteudo, firstChild);
-      log.debugSync('turmas-portal movido para acima da dobra');
-    }
-  } else if (turmas && conteudo) {
-    // turmas está dentro de um wrapper dentro de #conteudo
-    // Tenta mover o wrapper pai de turmas para o início de #conteudo
-    try {
-      const turmasParent = turmas.parentNode;
-      if (
-        turmasParent &&
-        turmasParent !== conteudo &&
-        turmasParent.parentNode === conteudo
-      ) {
-        const firstChild = conteudo.firstChild;
-        if (firstChild && firstChild !== (turmasParent as Node)) {
-          moveNodeBefore(turmasParent, conteudo, firstChild);
-          log.debugSync('wrapper de turmas-portal movido para acima da dobra');
-        }
-      }
-    } catch {
-      // Falha silenciosa — turmas permanecem onde estão
-    }
+  if (turmas) {
+    addClass(turmas, 'sc-hidden');
+    log.debugSync('turmas-portal ocultado (substituído pelo dashboard)');
   }
 
   // 3. Esconder seções vazias sem ID estável (busca por texto do cabeçalho)
