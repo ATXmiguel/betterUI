@@ -320,7 +320,7 @@ function mountCredit(): void {
     shadow.appendChild(style);
 
     const p = document.createElement('p');
-    p.textContent = 'Interface aprimorada por Miguel Barbosa Godinho — extensão betterUI (não-oficial)';
+    p.textContent = 'Interface aprimorada por Miguel Barbosa Godinho (Visus Studio) — extensão betterUI (não-oficial)';
     shadow.appendChild(p);
 
     log.debugSync('crédito betterUI montado');
