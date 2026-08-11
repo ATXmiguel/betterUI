@@ -202,6 +202,48 @@ export const SEL = {
     fallbacks: ['#painel-usuario td', '#conteudo td'],
     valida: (_el: Element) => true,
   },
+
+  // ── Tela de login (verTelaLogin.do) ──────────────────────────────────
+
+  login_card: {
+    id: 'login_card',
+    descricao: 'Card "Entrar no Sistema" com o formulário de login',
+    primario: 'div.logon',
+    fallbacks: ['#conteudo div:has(> form[name="loginForm"])'],
+    valida: (el: Element) => el.querySelector('form') !== null,
+  },
+
+  login_atencao: {
+    id: 'login_atencao',
+    descricao: 'Caixa "ATENÇÃO!" com instruções de login (CPF/senha) acima do card',
+    primario: '#conteudo div[align="center"]',
+    fallbacks: [],
+    valida: (el: Element) => (el.textContent ?? '').toUpperCase().includes('ATENÇÃO'),
+  },
+
+  login_outros_sistemas: {
+    id: 'login_outros_sistemas',
+    descricao: 'Faixa de acesso a outros sistemas (SIPAC, SIGRH etc.) acima do card de login',
+    primario: '#conteudo div[align="center"]:has(td.painel)',
+    fallbacks: [],
+    valida: (el: Element) => el.querySelectorAll('td.painel').length > 1,
+  },
+
+  login_links_table: {
+    id: 'login_links_table',
+    descricao: 'Tabela com links de cadastro/recuperação de senha abaixo do card de login',
+    primario: '#conteudo table[width="500"]',
+    fallbacks: ['#conteudo table:has(a[href*="cadastro"])'],
+    valida: (el: Element) => (el.textContent ?? '').includes('Cadastre-se'),
+  },
+
+  login_firefox_banner: {
+    id: 'login_firefox_banner',
+    descricao: 'Banner de recomendação do navegador Firefox — ruído, ocultado',
+    primario: '#conteudo table:has(img[src*="firefox"])',
+    fallbacks: [],
+    valida: (_el: Element) => true,
+  },
 } satisfies Record<string, SeletorSpec>;
 
 /**

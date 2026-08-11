@@ -26,7 +26,7 @@ Estes não são preferências. Se uma tarefa pedida exigir violar qualquer um de
 3. **Nenhuma requisição sai do domínio do SIGAA.** Sem CDN, sem fonte externa, sem analytics, sem Sentry, sem ping de "está vivo". Fontes e ícones são embarcados no pacote.
 4. **Nenhuma credencial é lida, guardada ou transmitida.** A extensão nunca toca em campo de senha, nunca preenche login, nunca lê `document.cookie` para persistir sessão. Ela apenas se aproveita da sessão que o navegador já mantém.
 5. **Nenhuma requisição automática em segundo plano.** Todo `fetch` é disparado por ação explícita do usuário (clique em "Atualizar"). Sem polling, sem alarms, sem sync periódico. Polling derruba a sessão do próprio aluno e faz o tráfego parecer anômalo para o WAF da instituição.
-6. **Dados acadêmicos só em `chrome.storage.local`**, sempre com botão visível de "Apagar dados locais" e limpeza automática ao detectar logout.
+6. **Dados acadêmicos só em `chrome.storage.local`**, com limpeza automática ao detectar logout. (Decisão 2026-08-10: o botão manual "Apagar dados locais" foi removido da UI por confundir o usuário — ver `docs/DECISOES.md`. A limpeza automática no logout permanece obrigatória.)
 7. **Sem marca institucional.** Não usar logo, brasão ou nome do CEFET-MG e do SIGAA como se fosse produto oficial. A palavra "não-oficial" aparece no nome da extensão, na descrição da loja e dentro da UI.
 8. **Sem HTML real com dado pessoal no repositório.** Fixtures de teste são obrigatoriamente anonimizadas antes do commit.
 

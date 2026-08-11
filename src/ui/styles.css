@@ -1322,6 +1322,410 @@ body.sc-reskin-active #relatorio-paisagem-container td.naoImprimir a:hover {
 }
 
 /* ══════════════════════════════════════════════════════════
+   9b. Tela de login (verTelaLogin.do)
+   ══════════════════════════════════════════════════════════
+   Card centralizado no estilo Moodle, consistente com os cards
+   do dashboard (mesma receita visual: bg branco, borda sutil,
+   radius-lg, shadow-sm). Puramente visual — nenhum campo é lido
+   ou preenchido por JS; o form original é mantido intacto.
+   A legenda "ATENÇÃO!" e os links de cadastro/recuperação são
+   movidos (via JS, ver reskin.ts) para dentro deste card — o card
+   é o único bloco de destaque da página; tudo o mais é secundário. */
+
+/* Card "Entrar no Sistema" — hero da página, campos maiores para leitura fácil */
+body.sc-reskin-active .sc-login-card {
+  width: 100% !important;
+  max-width: 520px !important;
+  margin: var(--sc-space-8) auto !important;
+  background: var(--sc-color-bg) !important;
+  border: 1px solid var(--sc-color-border-subtle);
+  border-radius: var(--sc-radius-lg);
+  padding: var(--sc-space-8) !important;
+  box-shadow: var(--sc-shadow-md);
+  box-sizing: border-box;
+}
+
+body.sc-reskin-active .sc-login-card h3 {
+  display: block !important;
+  width: auto !important;
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  margin: 0 0 var(--sc-space-5) !important;
+  padding: 0 !important;
+  border-bottom: none !important;
+  font-size: var(--sc-font-size-2xl) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  color: var(--sc-color-text) !important;
+  text-align: center !important;
+}
+
+/* Legenda "ATENÇÃO!" — movida para dentro do card, logo abaixo do título;
+   sem caixa/retângulo (contradiria as bordas arredondadas do card) — só
+   tipografia discreta, centralizada como legenda do formulário. */
+body.sc-reskin-active .sc-login-hint {
+  width: 100% !important;
+  margin: 0 0 var(--sc-space-6) !important;
+  padding: 0 !important;
+  background: none !important;
+  box-sizing: border-box;
+}
+
+body.sc-reskin-active .sc-login-hint p {
+  width: 100% !important;
+  margin: 0 !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  line-height: var(--sc-line-height-base) !important;
+  color: var(--sc-color-text-muted) !important;
+  font-weight: var(--sc-font-weight-normal) !important;
+  text-align: center !important;
+}
+
+/* Primeiro <p> é o rótulo "ATENÇÃO!" — some o grito maiúsculo/vermelho,
+   vira apenas um pouco mais forte que o resto do texto, sem caixa */
+body.sc-reskin-active .sc-login-hint p:first-child {
+  font-weight: var(--sc-font-weight-medium) !important;
+  color: var(--sc-color-text-secondary) !important;
+  margin-bottom: var(--sc-space-1) !important;
+}
+
+/* Campos do form — de layout de tabela para pilha vertical (label acima do input) */
+/* table/tbody precisam sair do layout de tabela também — não só o <tr>.
+   Se só o <tr> vira display:block, o Chrome mantém uma caixa de tabela
+   anônima por trás para preservar a estrutura, e ignora margin-bottom
+   (linhas de tabela não suportam margin). Resultado: os campos "Usuário"
+   e "Senha" colavam num retângulo único sem espaço entre eles. */
+body.sc-reskin-active .sc-login-card table {
+  display: block !important;
+  width: 100% !important;
+}
+
+body.sc-reskin-active .sc-login-card tbody {
+  display: block !important;
+}
+
+body.sc-reskin-active .sc-login-card tbody tr {
+  display: block !important;
+  margin-bottom: var(--sc-space-4) !important;
+}
+
+body.sc-reskin-active .sc-login-card tfoot {
+  display: block !important;
+}
+
+body.sc-reskin-active .sc-login-card th {
+  display: block !important;
+  width: auto !important;
+  text-align: left !important;
+  font-size: var(--sc-font-size-sm) !important;
+  font-weight: var(--sc-font-weight-medium) !important;
+  color: var(--sc-color-text-secondary) !important;
+  padding: 0 0 var(--sc-space-2) !important;
+}
+
+body.sc-reskin-active .sc-login-card td {
+  display: block !important;
+  padding: 0 !important;
+}
+
+/* Campos de usuário/senha — maiores, alvo de toque confortável (48px+).
+   Sem NENHUMA borda (nem em repouso, nem no foco) — nada de linha reta
+   aqui. A caixinha arredondada existe só por causa do preenchimento
+   (background) + radius grande + sombra suave; precisa de contraste
+   visível contra o branco do card em repouso (bg-muted, não bg-subtle
+   — esse último é quase idêntico ao branco e o campo ficava invisível
+   até o foco). No foco, o contraste aumenta via anel de sombra (glow),
+   não borda. */
+body.sc-reskin-active .sc-login-card input[type="text"],
+body.sc-reskin-active .sc-login-card input[type="password"] {
+  width: 100% !important;
+  min-height: 48px !important;
+  box-sizing: border-box;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-lg) !important;
+  padding: var(--sc-space-3) var(--sc-space-4) !important;
+  border: none !important;
+  border-radius: var(--sc-radius-lg) !important;
+  color: var(--sc-color-text) !important;
+  background: var(--sc-color-bg-muted) !important;
+  box-shadow: var(--sc-shadow-sm) !important;
+  transition: background var(--sc-transition-fast), box-shadow var(--sc-transition-fast);
+}
+
+body.sc-reskin-active .sc-login-card input[type="text"]:focus,
+body.sc-reskin-active .sc-login-card input[type="password"]:focus {
+  outline: none !important;
+  background: var(--sc-color-bg) !important;
+  box-shadow: 0 0 0 3px var(--sc-color-primary-bg), var(--sc-shadow-md) !important;
+}
+
+/* Botão "Entrar" — CTA principal, maior que o resto do card */
+body.sc-reskin-active .sc-login-card tfoot td {
+  display: block !important;
+  padding-top: var(--sc-space-3) !important;
+}
+
+body.sc-reskin-active .sc-login-card input[type="submit"] {
+  width: 100% !important;
+  min-height: 48px !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-md) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  color: #ffffff !important;
+  background: var(--sc-color-primary) !important;
+  border: none !important;
+  border-radius: var(--sc-radius-md) !important;
+  padding: var(--sc-space-3) !important;
+  cursor: pointer !important;
+  transition: background var(--sc-transition-fast);
+}
+
+body.sc-reskin-active .sc-login-card input[type="submit"]:hover {
+  background: var(--sc-color-primary-hover) !important;
+}
+
+body.sc-reskin-active .sc-login-card input[type="submit"]:focus-visible {
+  outline: 2px solid var(--sc-color-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Links de cadastro/recuperação de senha — movidos para dentro do card
+   (ver reskin.ts) e reduzidos de 3 parágrafos de texto a 4 botões
+   discretos. font-size:0 na célula colapsa o texto solto original
+   (sem <p>/<span> para hospedar uma classe própria); os links, que
+   são elementos reais, recebem o tamanho de fonte de volta. */
+/* display:block na tabela e no tbody (não só no <tr>) — mesmo motivo do
+   card acima: sem isso o Chrome preserva uma caixa de tabela anônima e
+   ignora gap/gaps do flex no <tr>, colando os 3 links num retângulo só. */
+body.sc-reskin-active .sc-login-links {
+  display: block !important;
+  width: 100% !important;
+  margin: var(--sc-space-6) 0 0 !important;
+  border-spacing: 0 !important;
+}
+
+body.sc-reskin-active .sc-login-links tbody {
+  display: block !important;
+}
+
+body.sc-reskin-active .sc-login-links tr {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: var(--sc-space-2) !important;
+}
+
+body.sc-reskin-active .sc-login-links td {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--sc-space-1) !important;
+  flex: 1 1 130px !important;
+  width: auto !important;
+  padding: 0 !important;
+  font-size: 0 !important;
+  vertical-align: top !important;
+}
+
+body.sc-reskin-active .sc-login-links br,
+body.sc-reskin-active .sc-login-links img {
+  display: none !important;
+}
+
+/* Sem borda (mesmo critério dos inputs acima) — o "chip" existe só por
+   preenchimento + radius grande + sombra suave, nunca por linha reta. */
+body.sc-reskin-active .sc-login-links td a {
+  display: block !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-medium) !important;
+  line-height: var(--sc-line-height-tight) !important;
+  color: var(--sc-color-text-secondary) !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  background: var(--sc-color-bg-muted) !important;
+  border: none !important;
+  border-radius: var(--sc-radius-lg) !important;
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  box-shadow: var(--sc-shadow-sm) !important;
+  transition: color var(--sc-transition-fast), background var(--sc-transition-fast), box-shadow var(--sc-transition-fast);
+}
+
+body.sc-reskin-active .sc-login-links td a:hover,
+body.sc-reskin-active .sc-login-links td a:focus-visible {
+  color: var(--sc-color-primary) !important;
+  background: var(--sc-color-primary-bg) !important;
+  box-shadow: var(--sc-shadow-md) !important;
+}
+
+/* Atalhos "outros sistemas" (SIGAA/SIPAC/SIGRH...) — movidos (via JS,
+   ver reskin.ts) para dentro da barra azul do cabeçalho (#painel-usuario),
+   que na tela de login fica vazia. Viram botões grandes ali, na mesma
+   cor de navegação usada no portal/turma virtual (--sc-color-nav-*). */
+body.sc-reskin-active .sc-login-nav-host {
+  height: auto !important;
+  min-height: 53px !important;
+  display: flex !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+/* display:flex direto na <table> (não só no tbody) — mesmo bug das outras
+   tabelas: sem isso o Chrome preserva o layout de tabela por baixo e o
+   flex do tbody não estica de verdade, sobrando uma tira sem cobertura
+   de hover na base da barra. */
+body.sc-reskin-active .sc-login-nav-systems {
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-spacing: 0 !important;
+}
+
+body.sc-reskin-active .sc-login-nav-systems tbody {
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+body.sc-reskin-active .sc-login-nav-systems tr {
+  display: contents !important;
+}
+
+body.sc-reskin-active .sc-login-nav-systems td.painel {
+  display: flex !important;
+  align-items: stretch !important;
+  flex: 1 1 0 !important;
+  width: auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-right: 1px solid var(--sc-color-nav-hover) !important;
+  transition: background var(--sc-transition-fast);
+}
+
+body.sc-reskin-active .sc-login-nav-systems td.painel:last-child {
+  border-right: none !important;
+}
+
+body.sc-reskin-active .sc-login-nav-systems td.painel:hover {
+  background: var(--sc-color-nav-hover) !important;
+}
+
+body.sc-reskin-active .sc-login-nav-systems td.sistemaAtual {
+  background: var(--sc-color-nav-active) !important;
+}
+
+/* O <a> preenche o botão inteiro (JS move o texto "(Categoria)" para
+   dentro dele, ver wrapNavSystemButtons em reskin.ts) — clicar em
+   qualquer ponto do botão, não só no título, ativa o link. */
+body.sc-reskin-active .sc-login-nav-systems td.painel a {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  width: 100% !important;
+  padding: var(--sc-space-2) !important;
+  box-sizing: border-box;
+  color: var(--sc-color-nav-text) !important;
+  text-decoration: none !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  line-height: var(--sc-line-height-tight) !important;
+  text-align: center !important;
+}
+
+body.sc-reskin-active .sc-login-nav-systems td.painel a:focus-visible {
+  outline: 2px solid var(--sc-color-nav-accent) !important;
+  outline-offset: -2px !important;
+}
+
+body.sc-reskin-active .sc-login-nav-caption {
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-normal) !important;
+  opacity: 0.8;
+}
+
+/* Fallback (defensivo, degrada normalmente se #painel-usuario não existir):
+   faixa em chips soltos, acima do card. */
+body.sc-reskin-active .sc-login-outros {
+  margin: 0 auto var(--sc-space-6) !important;
+}
+
+body.sc-reskin-active .sc-login-outros table {
+  width: 100% !important;
+  max-width: 560px !important;
+  margin: 0 auto !important;
+  border-spacing: 0 !important;
+}
+
+body.sc-reskin-active .sc-login-outros tbody {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: var(--sc-space-2) !important;
+}
+
+body.sc-reskin-active .sc-login-outros tr {
+  display: contents !important;
+}
+
+body.sc-reskin-active .sc-login-outros td.painel {
+  display: block !important;
+  flex: 0 1 auto !important;
+  width: auto !important;
+  background: var(--sc-color-bg) !important;
+  border: 1px solid var(--sc-color-border-subtle) !important;
+  border-radius: var(--sc-radius-md) !important;
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  line-height: var(--sc-line-height-tight) !important;
+  color: var(--sc-color-text-muted) !important;
+  text-align: center !important;
+}
+
+body.sc-reskin-active .sc-login-outros td.sistemaAtual {
+  background: var(--sc-color-primary-bg) !important;
+  border-color: var(--sc-color-primary) !important;
+  color: var(--sc-color-primary) !important;
+}
+
+body.sc-reskin-active .sc-login-outros td.painel a {
+  color: inherit !important;
+  text-decoration: none !important;
+  font-weight: var(--sc-font-weight-medium) !important;
+}
+
+body.sc-reskin-active .sc-login-outros td.painel a:hover {
+  text-decoration: underline !important;
+}
+
+@media (max-width: 480px) {
+  body.sc-reskin-active .sc-login-card {
+    max-width: 100% !important;
+    padding: var(--sc-space-6) var(--sc-space-4) !important;
+  }
+
+  body.sc-reskin-active .sc-login-links td {
+    flex: 1 1 45% !important;
+  }
+
+  body.sc-reskin-active .sc-login-nav-systems tbody {
+    flex-wrap: wrap !important;
+  }
+
+  body.sc-reskin-active .sc-login-nav-systems td.painel {
+    flex: 1 1 33% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--sc-color-nav-hover) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
    10. Acessibilidade — foco visível universal
    ══════════════════════════════════════════════════════════
    O SIGAA não tem foco visível na maioria dos elementos.

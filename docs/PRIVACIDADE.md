@@ -41,8 +41,7 @@ Exclusivamente no armazenamento local do seu navegador
 
 - Não saem do seu computador.
 - Não são sincronizados com nenhuma conta, nuvem ou outro dispositivo.
-- Podem ser apagados a qualquer momento pelo botão **"Apagar dados locais"**
-  dentro da própria extensão, ou desinstalando a extensão.
+- Podem ser apagados a qualquer momento desinstalando a extensão.
 - São apagados automaticamente quando a extensão detecta que você saiu do
   SIGAA (logout).
 

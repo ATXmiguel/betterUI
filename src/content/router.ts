@@ -6,6 +6,7 @@
  */
 
 export type SigaaRoute =
+  | 'login'
   | 'portal'
   | 'turma-notas'
   | 'turma-frequencia'
@@ -15,6 +16,7 @@ export type SigaaRoute =
   | 'unknown';
 
 const ROUTE_PATTERNS: Array<{ pattern: RegExp; route: SigaaRoute }> = [
+  { pattern: /\/sigaa\/verTelaLogin\.do/,                 route: 'login' },
   { pattern: /\/sigaa\/portais\/discente\/discente\.jsf/, route: 'portal' },
   { pattern: /\/sigaa\/ava\/index\.jsf/,                  route: 'turma-notas' },
   { pattern: /\/sigaa\/ava\/FrequenciaAluno\/mapa\.jsf/,  route: 'turma-frequencia' },

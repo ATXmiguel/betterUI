@@ -375,6 +375,142 @@ export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
     route === 'turma-avisos'
   ) {
     applyTurmaVirtualReskin();
+  } else if (route === 'login') {
+    applyLoginReskin();
+  }
+}
+
+/**
+ * Restilização da tela de login (verTelaLogin.do).
+ *
+ * Puramente visual: nenhum campo é lido, preenchido ou observado.
+ * A extensão nunca toca em usuário/senha (princípio nº4 do CLAUDE.md).
+ * O form original permanece intacto — apenas classes sc- são adicionadas
+ * para que o CSS reestilize o card, a caixa de aviso e os links.
+ */
+function applyLoginReskin(): void {
+  const card = resolve(SEL.login_card);
+  const atencao = resolve(SEL.login_atencao);
+  const linksTable = resolve(SEL.login_links_table);
+
+  if (card) {
+    addClass(card, 'sc-login-card');
+    log.debugSync('login: card estilizado');
+
+    const form = card.querySelector('form');
+
+    // Caixa "ATENÇÃO!" — movida para dentro do card, logo abaixo do
+    // título, e reduzida de banner vermelho a legenda discreta.
+    if (atencao) {
+      addClass(atencao, 'sc-login-hint');
+      moveNodeBefore(atencao, card, form);
+    }
+
+    // Links de cadastro/recuperação de senha — movidos para dentro do
+    // card, como grupo de ações secundárias logo abaixo do botão Entrar.
+    if (linksTable) {
+      addClass(linksTable, 'sc-login-links');
+      moveNodeBefore(linksTable, card, null);
+    }
+  }
+
+  // Atalhos "outros sistemas" (SIGAA/SIPAC/SIGRH...) — movidos para dentro
+  // da barra azul do cabeçalho (#painel-usuario), que na tela de login fica
+  // vazia (não há menu de usuário sem sessão). Viram botões grandes ali,
+  // reaproveitando a cor de navegação já usada no portal/turma virtual.
+  const outrosSistemas = resolve(SEL.login_outros_sistemas);
+  const navHost = resolve(SEL.painel_usuario);
+  if (outrosSistemas) {
+    const table = outrosSistemas.querySelector('table');
+    if (table && navHost) {
+      addClass(navHost, 'sc-login-nav-host');
+      addClass(table, 'sc-login-nav-systems');
+      moveNodeBefore(table, navHost, null);
+      wrapNavSystemButtons(table);
+      log.debugSync('login: outros sistemas movidos para a barra azul');
+    } else {
+      // navHost ausente (defensivo) — mantém no lugar original como chips
+      addClass(outrosSistemas, 'sc-login-outros');
+    }
+  }
+
+  // Banner de recomendação do Firefox — ruído puro, ocultar (Fase 0).
+  const firefoxBanner = resolve(SEL.login_firefox_banner);
+  if (firefoxBanner) {
+    addClass(firefoxBanner, 'sc-hidden');
+    log.debugSync('login: banner Firefox ocultado');
+  }
+
+  collapseLoginSpacers();
+
+  log.debugSync('applyLoginReskin: concluído');
+}
+
+/**
+ * Em cada botão "outros sistemas" (SIGAA/SIPAC/SIGRH...) só o título é
+ * um link — o texto entre parênteses (ex: "(Acadêmico)") é texto solto
+ * no <td>, fora do <a>. Sem isso, clicar nele ou no espaço ao redor não
+ * ativa o botão. Move todo o conteúdo restante do <td> para dentro do
+ * <a> (o texto vira um <span> para poder ser estilizado como legenda
+ * secundária); o resultado é um único elemento clicável preenchendo
+ * o botão inteiro. Não rastreado para reversão (decorativo, mesmo
+ * padrão de styleHorarioCodes) — degrada normalmente num reload.
+ */
+function wrapNavSystemButtons(table: Element): void {
+  try {
+    table.querySelectorAll('td.painel').forEach(td => {
+      const a = td.querySelector('a');
+      if (!a) return;
+
+      [...td.childNodes].forEach(node => {
+        if (node === a) return;
+        const text = node.nodeType === Node.TEXT_NODE ? node.textContent?.trim() : '';
+        if (text) {
+          const span = document.createElement('span');
+          span.className = 'sc-login-nav-caption';
+          span.appendChild(node);
+          a.appendChild(span);
+        } else {
+          node.parentNode?.removeChild(node);
+        }
+      });
+    });
+  } catch {
+    // Falha silenciosa
+  }
+}
+
+/**
+ * A tela de login tem vários <br> soltos, um <center> vazio e um <div>
+ * espaçador (sem classe, só width+margin inline) como filhos diretos de
+ * #conteudo, entre a faixa "outros sistemas" e o card de login — resquício
+ * do layout em tabela/fonte antigo do SIGAA. Sem eles removidos, cada um
+ * soma uma linha de altura e o card de login fica visualmente "flutuando"
+ * bem abaixo do resto, sem relação com o restante da página.
+ *
+ * Escopado a filhos diretos de #conteudo com texto vazio — não toca em
+ * nada dentro do card de login, das tabelas ou das caixas já estilizadas
+ * (todas têm texto, então não batem no critério de "vazio").
+ */
+function collapseLoginSpacers(): void {
+  try {
+    const conteudo = document.getElementById('conteudo');
+    if (!conteudo) return;
+
+    [...conteudo.children].forEach(el => {
+      if (el.tagName === 'BR') {
+        addClass(el, 'sc-hidden');
+        return;
+      }
+      const isEmpty = (el.textContent ?? '').trim().length === 0;
+      if (isEmpty && (el.tagName === 'CENTER' || el.tagName === 'DIV') && !el.classList.contains('clear')) {
+        addClass(el, 'sc-hidden');
+      }
+    });
+
+    log.debugSync('collapseLoginSpacers: espaçadores ocultados');
+  } catch {
+    // Silencioso
   }
 }
 

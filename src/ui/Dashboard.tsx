@@ -11,7 +11,7 @@
 import { h, render } from 'preact';
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import { collectAll } from '@/fetchers/collect';
-import { loadColecao, clearColecao, cacheAge } from '@/storage/cache';
+import { loadColecao, cacheAge } from '@/storage/cache';
 import { parseAtualizacoes } from '@/parsers/atualizacoes';
 import type { ColecaoCompleta, NotasTurma, FrequenciaTurma, TurmaInfo, ProgressInfo, AtualizacaoItem } from '@/types';
 
@@ -438,12 +438,6 @@ function Dashboard({
     abortRef.current?.abort();
   }, []);
 
-  const handleClear = useCallback(async () => {
-    await clearColecao();
-    // Preserva os cards (turmas do DOM) — apaga só notas/frequência coletadas
-    setData(prev => prev ? { ...prev, notas: {}, frequencia: {}, coletadoEm: 0 } : prev);
-  }, []);
-
   const firstName = data?.nomeAluno?.split(' ')[0] ?? nomeAlunoInicial?.split(' ')[0] ?? '';
 
   return (
@@ -474,18 +468,6 @@ function Dashboard({
           {loading && (
             <button class="sc-btn sc-btn-cancel" type="button" onClick={handleCancel}>
               Cancelar
-            </button>
-          )}
-          {data && !loading && (
-            Object.keys(data.notas).length > 0 || Object.keys(data.frequencia).length > 0
-          ) && (
-            <button
-              class="sc-btn sc-btn-danger"
-              type="button"
-              onClick={handleClear}
-              title="Remove todos os dados salvos localmente"
-            >
-              Apagar dados locais
             </button>
           )}
         </div>
@@ -648,18 +630,6 @@ const DASHBOARD_CSS = `
   background: #e9ecef;
 }
 
-.sc-btn-danger {
-  background: transparent;
-  border-color: #c92a2a;
-  color: #c92a2a;
-  font-size: 12px;
-  padding: 6px 12px;
-}
-
-.sc-btn-danger:hover {
-  background: #fff5f5;
-}
-
 .sc-btn-sm {
   padding: 4px 10px;
   font-size: 12px;
@@ -806,7 +776,7 @@ const DASHBOARD_CSS = `
   border-radius: 4px;
   background: #f1f3f5;
   color: #495057;
-  font-family: ui-monospace, 'Cascadia Code', monospace;
+  font-family: inherit;
 }
 
 /* ── Notas ── */
@@ -1134,7 +1104,7 @@ const DASHBOARD_CSS = `
   font-weight: 600;
   color: #f08c00;
   font-variant-numeric: tabular-nums;
-  font-family: ui-monospace, 'Cascadia Code', monospace;
+  font-family: inherit;
   padding-top: 1px;
   min-width: 36px;
 }
@@ -1263,7 +1233,8 @@ export function mountDashboard(
 
   dashboardHost = document.createElement('div');
   dashboardHost.id = 'betterui-dashboard-host';
-  dashboardHost.style.cssText = 'all: initial; display: block;';
+  dashboardHost.style.cssText =
+    "all: initial; display: block; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;";
 
   // Inserir antes do primeiro filho do container
   container.insertBefore(dashboardHost, container.firstChild);
