@@ -14,6 +14,7 @@ import { resolve, SEL } from '@/selectors/map';
 import { applyReskin, removeReskin } from '@/ui/reskin';
 import { mountToggle } from '@/ui/toggle';
 import { mountDashboard, unmountDashboard } from '@/ui/Dashboard';
+import { initTheme } from '@/ui/theme';
 import { clearOnLogout } from '@/storage/cache';
 import { parseTurmas } from '@/parsers/turmas';
 import type { TurmaInfo } from '@/types';
@@ -24,6 +25,10 @@ safe(async () => {
 
   // Limpar cache se detectar logout
   await clearOnLogout();
+
+  // Aplicar tema salvo (ou preferência do sistema) antes do resto, para
+  // evitar flash de tema claro em quem já escolheu o escuro.
+  await initTheme();
 
   const route = detectRoute();
   log.debug('rota detectada:', route);

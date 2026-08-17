@@ -50,6 +50,7 @@
   --sc-color-text:           #212529;
   --sc-color-text-secondary: #495057;
   --sc-color-text-muted:     #868e96;
+  --sc-color-text-faint:     #adb5bd; /* tom mais apagado que text-muted — legendas, contadores */
 
   --sc-color-primary:        #1971c2;
   --sc-color-primary-hover:  #1864ab;
@@ -58,6 +59,14 @@
   --sc-color-success:        #2b8a3e;
   --sc-color-warning:        #e67700;
   --sc-color-danger:         #c92a2a;
+  --sc-color-success-bg:     #ebfbee;
+  --sc-color-warning-bg:     #fff9db;
+  --sc-color-danger-bg:      #fff5f5;
+  --sc-color-danger-border:  #ffa8a8;
+
+  /* Acento do card "Atualizações recentes" no Dashboard — distinto do warning semântico */
+  --sc-color-accent-feed:    #f08c00;
+  --sc-color-accent-feed-bg: #fffbf5;
 
   /* ── Nav bar (light theme — azul CEFET) ─────────────── */
   --sc-color-nav-bg:         #C4D2EB;  /* azul claro — fundo da barra */
@@ -66,6 +75,10 @@
   --sc-color-nav-text-muted: #1971c2;  /* azul médio — texto secundário */
   --sc-color-nav-hover:      rgba(0, 76, 132, 0.12); /* hover sutil sobre fundo claro */
   --sc-color-nav-active:     rgba(0, 76, 132, 0.20); /* item ativo */
+
+  /* ── Cores extras (antes cravadas em styles.css) ─────── */
+  --sc-color-footer-text:     #034E86; /* azul do rodapé — igual ao usado no SIGAA nativo */
+  --sc-color-text-on-primary: #ffffff; /* texto sobre fundo --sc-color-primary (ex: botão "Entrar") */
 
   /* ── Shadows ─────────────────────────────────────── */
   --sc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -81,4 +94,56 @@
     --sc-transition-fast: 0ms;
     --sc-transition-base: 0ms;
   }
+}
+
+/* ══════════════════════════════════════════════════════════
+   Tema escuro
+   ══════════════════════════════════════════════════════════
+   Ativado via classe sc-theme-dark no <body> (ver content/index.ts
+   e ui/reskin.ts). Sobrescreve os mesmos tokens usados em todo o
+   restante do CSS — como quase tudo em styles.css e Dashboard.tsx
+   já lê var(--sc-color-*), a troca de paleta se propaga sozinha,
+   sem precisar duplicar regra nenhuma. Custom properties atravessam
+   Shadow DOM por herança normal, então o Dashboard (Shadow DOM
+   closed) também herda esses valores. */
+body.sc-theme-dark {
+  --sc-color-bg:             #1a1d21;
+  --sc-color-bg-subtle:      #121417;
+  --sc-color-bg-muted:       #22262b;
+  --sc-color-border:         #34383e;
+  --sc-color-border-subtle:  #2a2e34;
+
+  --sc-color-text:           #e9ecef;
+  --sc-color-text-secondary: #adb5bd;
+  --sc-color-text-muted:     #868e96;
+  --sc-color-text-faint:     #5c636a;
+
+  --sc-color-primary:        #4dabf7;
+  --sc-color-primary-hover:  #74c0fc;
+  --sc-color-primary-bg:     #1c3a5e;
+
+  --sc-color-success:        #51cf66;
+  --sc-color-warning:        #ffa94d;
+  --sc-color-danger:         #ff6b6b;
+  --sc-color-success-bg:     rgba(81, 207, 102, 0.16);
+  --sc-color-warning-bg:     rgba(255, 169, 77, 0.16);
+  --sc-color-danger-bg:      rgba(255, 107, 107, 0.16);
+  --sc-color-danger-border:  rgba(255, 107, 107, 0.4);
+
+  --sc-color-accent-feed:    #ffa94d;
+  --sc-color-accent-feed-bg: rgba(255, 169, 77, 0.12);
+
+  /* Navbar escura — invertida em relação ao tema claro */
+  --sc-color-nav-bg:         #16283d;
+  --sc-color-nav-accent:     #4dabf7;
+  --sc-color-nav-text:       #cfe0f5;
+  --sc-color-nav-text-muted: #8ab4e8;
+  --sc-color-nav-hover:      rgba(77, 171, 247, 0.15);
+  --sc-color-nav-active:     rgba(77, 171, 247, 0.25);
+
+  --sc-color-footer-text:     #6fb3f0;
+  --sc-color-text-on-primary: #ffffff;
+
+  --sc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sc-shadow-md: 0 2px 10px rgba(0, 0, 0, 0.5);
 }

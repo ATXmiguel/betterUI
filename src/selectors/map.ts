@@ -115,6 +115,14 @@ export const SEL = {
     valida: (_el: Element) => true,
   },
 
+  menu_usuario: {
+    id: 'menu_usuario',
+    descricao: 'Menu de atalhos do usuário logado (Módulos, Abrir Chamado, Menu Discente, Alterar senha) — dentro da barra de perfil',
+    primario: '#menu-usuario',
+    fallbacks: ['div[id="menu-usuario"]'],
+    valida: (_el: Element) => true,
+  },
+
   menu_item_texto: {
     id: 'menu_item_texto',
     descricao: 'Célula de texto de qualquer item do menu JSCookMenu (Ensino, Pesquisa etc.) — usar resolveAll + filtrar por textContent',
@@ -137,6 +145,22 @@ export const SEL = {
     primario: '#info-sistema h1',
     fallbacks: ['#cabecalho h1', 'h1'],
     valida: (el: Element) => el.textContent?.includes('CEFET') ?? false,
+  },
+
+  info_sistema: {
+    id: 'info_sistema',
+    descricao: 'Bloco superior do cabeçalho com título do sistema — ancoradouro de fallback do botão de tema (login, sem sessão); presente nas 3 rotas com reskin (portal, turma virtual, login)',
+    primario: '#info-sistema',
+    fallbacks: ['#cabecalho'],
+    valida: (el: Element) => (el.textContent ?? '').includes('SIGAA'),
+  },
+
+  info_sistema_dir: {
+    id: 'info_sistema_dir',
+    descricao: 'Bloco "Tempo de Sessão / SAIR" no canto superior direito — só existe com sessão ativa (confirmado via DevTools: div.dir, position:absolute, height:16px); ancoradouro preferencial do botão de tema no portal e na turma virtual',
+    primario: '#info-sistema div.dir',
+    fallbacks: ['#info-sistema .dir'],
+    valida: (el: Element) => (el.textContent ?? '').includes('SAIR'),
   },
 
   // ── Turma virtual (genérico) ─────────────────────────────────────────

@@ -22,6 +22,33 @@
    Resetamos para neutro quando o reskin está ativo. */
 body.sc-reskin-active {
   background-color: var(--sc-color-bg-subtle) !important;
+  /* Avisa o navegador que a página já gerencia seu próprio tema —
+     sem isso, o Chrome pode aplicar "escurecimento automático" por
+     heurística própria (inverte alguns elementos, ignora outros) por
+     cima do nosso CSS, produzindo a mistura de claro/escuro. Também
+     faz inputs, checkboxes e scrollbars nativos renderizarem no tom
+     certo sem precisarmos estilizar cada um manualmente. */
+  color-scheme: light;
+}
+
+body.sc-reskin-active.sc-theme-dark {
+  color-scheme: dark;
+}
+
+/* #painel-usuario (barra de perfil azul, abaixo do cabeçalho) tem fundo
+   fixo no CSS nativo do SIGAA, fora do nosso controle de tokens — por
+   isso não acompanhava o tema escuro. Reaproveita a cor de navegação
+   já usada no menu principal. */
+body.sc-reskin-active #painel-usuario {
+  background: var(--sc-color-nav-bg) !important;
+}
+
+/* #portal-docente e #conteudo também têm fundo branco fixo no CSS nativo
+   do SIGAA — sem isso, sobra uma faixa branca atrás do conteúdo em tema
+   escuro mesmo com o body já escurecido. */
+body.sc-reskin-active #portal-docente,
+body.sc-reskin-active #conteudo {
+  background: transparent !important;
 }
 
 /* Layout YUI (turma virtual): body não deve ter scroll próprio —
@@ -42,12 +69,18 @@ body.sc-reskin-active .ui-layout-pane-south {
   align-items: center !important;
 }
 
-/* #container é o div de 960px com margem automática que centraliza todo o conteúdo */
+/* #container é o div de 960px com margem automática que centraliza todo o
+   conteúdo — tem fundo branco sólido fixo no CSS nativo do SIGAA (confirmado
+   via DevTools: rgb(255,255,255), presente nas 3 rotas). Como #conteudo e
+   #portal-docente já são transparent, sem isso eles revelam esse branco por
+   baixo em vez do fundo escuro do body — era a maior fonte da "mistura"
+   entre tema claro e escuro. */
 body.sc-reskin-active #container {
   width: 100% !important;
   max-width: 100% !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
+  background: transparent !important;
   box-sizing: border-box;
 }
 
@@ -318,7 +351,7 @@ body.sc-reskin-active #rodape,
 body.sc-reskin-active #rodape * {
   font-family: var(--sc-font-family);
   font-size: var(--sc-font-size-xs);
-  color: #034E86 !important;
+  color: var(--sc-color-footer-text) !important;
 }
 
 body.sc-reskin-active #rodape {
@@ -426,7 +459,7 @@ body.sc-reskin-active #info-sistema {
   background: transparent !important;
   font-family: var(--sc-font-family) !important;
   color: var(--sc-color-text-secondary) !important;
-  border-bottom: 2px solid #1971C2 !important;
+  border-bottom: 2px solid var(--sc-color-primary) !important;
 }
 
 body.sc-reskin-active #info-sistema a,
@@ -776,12 +809,37 @@ body.sc-reskin-active #barraDireita .sc-widget-empty .headerBloco {
 body.sc-reskin-active #painel-usuario {
   font-family: var(--sc-font-family) !important;
   font-size: var(--sc-font-size-sm) !important;
-  color: var(--sc-color-text) !important;
+  color: var(--sc-color-nav-text) !important;
 }
 
 body.sc-reskin-active #menu-usuario {
   font-family: var(--sc-font-family) !important;
   font-size: var(--sc-font-size-sm) !important;
+  color: var(--sc-color-nav-text) !important;
+}
+
+/* "Módulos", "Abrir Chamado", "Menu Discente", "Alterar senha" etc. — o
+   `color` no container acima não alcança <a> filhos (âncoras não herdam
+   cor de texto de forma confiável quando o CSS nativo do SIGAA já define
+   uma cor própria com especificidade suficiente). Mesmo problema já
+   resolvido para #menu-dropdown a — reforço explícito por elemento aqui
+   garante que o texto acompanhe o tema claro/escuro em vez de ficar preso
+   na cor nativa. Casos com cor cravada em span/font filho (fora do
+   alcance deste seletor) são cobertos por fixNavBarText em reskin.ts.
+
+   background-color: confirmado via DevTools ao vivo — cada <a> dentro de
+   #menu-usuario tem fundo próprio cravado no CSS nativo do SIGAA
+   (rgb(230,236,247), fora do nosso controle de tokens), formando um
+   "pill" claro atrás do texto. No tema claro coincide por acaso com o
+   fundo da barra e passa despercebido; no tema escuro o texto (cor de
+   tema escuro) fica quase invisível sobre esse fundo claro que nunca
+   muda. Removendo o fundo nativo, o link fica liso sobre a barra —
+   mesmo padrão já usado em #menu-dropdown a. Só background-color (não o
+   shorthand background), pra preservar o ícone (background-image). */
+body.sc-reskin-active #painel-usuario a,
+body.sc-reskin-active #menu-usuario a {
+  color: var(--sc-color-nav-text) !important;
+  background-color: transparent !important;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -954,7 +1012,7 @@ body.sc-reskin-active tr.alunoSelecionado td {
 
 body.sc-reskin-active #rodape,
 body.sc-reskin-active #rodape * {
-  color: #034E86 !important;
+  color: var(--sc-color-footer-text) !important;
 }
 
 body.sc-reskin-active #rodape {
@@ -1396,9 +1454,30 @@ body.sc-reskin-active .sc-login-hint p:first-child {
    anônima por trás para preservar a estrutura, e ignora margin-bottom
    (linhas de tabela não suportam margin). Resultado: os campos "Usuário"
    e "Senha" colavam num retângulo único sem espaço entre eles. */
+/* Fundo: o SIGAA nativo pinta table/tbody/tr/td/th de branco sólido
+   (hardcoded, fora do nosso controle de tokens). Em tema claro isso
+   coincidia com o branco do card e passava despercebido; em tema escuro
+   sobrava como retângulos brancos atrás dos campos escuros. Forçar
+   transparent aqui deixa o fundo do próprio .sc-login-card (já tokenizado)
+   aparecer por baixo, em qualquer tema. */
+body.sc-reskin-active .sc-login-card table,
+body.sc-reskin-active .sc-login-card tbody,
+body.sc-reskin-active .sc-login-card tfoot,
+body.sc-reskin-active .sc-login-card tr,
+body.sc-reskin-active .sc-login-card th,
+body.sc-reskin-active .sc-login-card td {
+  background: transparent !important;
+}
+
+/* border: confirmado via DevTools ao vivo — o <table> nativo do SIGAA tem
+   border própria (0.8px solid rgb(200,213,236), CSS nativo, não atributo
+   HTML), invisível no fundo claro original mas visível como um retângulo
+   fino ao redor dos campos depois do reskin. Não é o card (.sc-login-card
+   nunca teve essa borda) — é a tabela por dentro dele. */
 body.sc-reskin-active .sc-login-card table {
   display: block !important;
   width: 100% !important;
+  border: none !important;
 }
 
 body.sc-reskin-active .sc-login-card tbody {
@@ -1453,6 +1532,20 @@ body.sc-reskin-active .sc-login-card input[type="password"] {
   transition: background var(--sc-transition-fast), box-shadow var(--sc-transition-fast);
 }
 
+/* Autofill do Chrome: o navegador pinta o próprio fundo do campo
+   (branco/amarelado) por cima do nosso CSS assim que login/senha salvos
+   são preenchidos — `background` sozinho não vence isso em nenhum tema.
+   Precisa do truque do box-shadow interno gigante + text-fill-color. */
+body.sc-reskin-active .sc-login-card input:-webkit-autofill,
+body.sc-reskin-active .sc-login-card input:-webkit-autofill:hover,
+body.sc-reskin-active .sc-login-card input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--sc-color-text) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--sc-color-bg-muted) inset !important;
+  box-shadow: 0 0 0 1000px var(--sc-color-bg-muted) inset !important;
+  caret-color: var(--sc-color-text);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 body.sc-reskin-active .sc-login-card input[type="text"]:focus,
 body.sc-reskin-active .sc-login-card input[type="password"]:focus {
   outline: none !important;
@@ -1472,7 +1565,7 @@ body.sc-reskin-active .sc-login-card input[type="submit"] {
   font-family: var(--sc-font-family) !important;
   font-size: var(--sc-font-size-md) !important;
   font-weight: var(--sc-font-weight-bold) !important;
-  color: #ffffff !important;
+  color: var(--sc-color-text-on-primary) !important;
   background: var(--sc-color-primary) !important;
   border: none !important;
   border-radius: var(--sc-radius-md) !important;
@@ -1498,6 +1591,15 @@ body.sc-reskin-active .sc-login-card input[type="submit"]:focus-visible {
 /* display:block na tabela e no tbody (não só no <tr>) — mesmo motivo do
    card acima: sem isso o Chrome preserva uma caixa de tabela anônima e
    ignora gap/gaps do flex no <tr>, colando os 3 links num retângulo só. */
+/* Mesmo fundo branco nativo da tabela do SIGAA que afeta o card acima —
+   sem isso, sobra retângulo branco atrás dos chips em tema escuro. */
+body.sc-reskin-active .sc-login-links,
+body.sc-reskin-active .sc-login-links tbody,
+body.sc-reskin-active .sc-login-links tr,
+body.sc-reskin-active .sc-login-links td {
+  background: transparent !important;
+}
+
 body.sc-reskin-active .sc-login-links {
   display: block !important;
   width: 100% !important;
@@ -1563,6 +1665,10 @@ body.sc-reskin-active .sc-login-links td a:focus-visible {
    que na tela de login fica vazia. Viram botões grandes ali, na mesma
    cor de navegação usada no portal/turma virtual (--sc-color-nav-*). */
 body.sc-reskin-active .sc-login-nav-host {
+  /* Fundo explícito com o token de navegação — antes dependia do fundo
+     nativo do #painel-usuario (fixo, não tokenizado), que coincidia com
+     a paleta clara por acaso mas não acompanhava o tema escuro. */
+  background: var(--sc-color-nav-bg) !important;
   height: auto !important;
   min-height: 53px !important;
   display: flex !important;

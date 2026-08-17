@@ -11,6 +11,7 @@
 
 import { resolve, resolveAll, SEL } from '@/selectors/map';
 import { log } from '@/lib/log';
+import { toggleTheme } from '@/ui/theme';
 import type { VersionStatus } from '@/selectors/version';
 import type { SigaaRoute } from '@/content/router';
 
@@ -18,6 +19,7 @@ import type { SigaaRoute } from '@/content/router';
 const classesAdded: Array<{ el: Element; cls: string }> = [];
 const domMoves: Array<{ node: Node; parent: Node; nextSibling: Node | null }> = [];
 let creditHost: HTMLDivElement | null = null;
+let themeToggleHost: HTMLSpanElement | null = null;
 
 function addClass(el: Element | null, cls: string): void {
   if (!el) return;
@@ -106,35 +108,73 @@ function fixFullWidth(): void {
 const navPopupObservers: MutationObserver[] = [];
 const navPopupCleanups: Array<() => void> = [];
 
-function relativeLuminance(rgbColor: string): number | null {
-  const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(rgbColor);
-  if (!match) return null;
-  const r = Number(match[1]);
-  const g = Number(match[2]);
-  const b = Number(match[3]);
-  return 0.299 * r + 0.587 * g + 0.114 * b;
+/**
+ * Lê um token de cor (--sc-color-*) computado no <body> em vez de usar hex
+ * cravado — assim o valor acompanha o tema ativo (claro/escuro), já que os
+ * tokens em tokens.css são sobrescritos por `body.sc-theme-dark`. Cai no
+ * `fallback` só se a custom property ainda não tiver sido definida (nunca
+ * deveria acontecer com tokens.css carregado, mas mantém fail-open).
+ */
+function readThemeColor(token: string, fallback: string): string {
+  const value = getComputedStyle(document.body).getPropertyValue(token).trim();
+  return value || fallback;
+}
+
+function relativeLuminance(color: string): number | null {
+  const rgbMatch = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(color);
+  if (rgbMatch) {
+    const r = Number(rgbMatch[1]);
+    const g = Number(rgbMatch[2]);
+    const b = Number(rgbMatch[3]);
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+  // readThemeColor devolve o token cravado em tokens.css (ex: "#C4D2EB")
+  // quando chamado diretamente, sem passar por getComputedStyle — aceita
+  // hex também, não só rgb().
+  const hexMatch = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color.trim());
+  if (hexMatch) {
+    let hex = hexMatch[1];
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const num = parseInt(hex, 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+  return null;
 }
 
 /**
- * Corrige texto claro demais na barra sempre-visível (fundo claro #C4D2EB).
- * A regra CSS `#menu-dropdown a { color: ... }` só alcança o próprio <a> —
- * se o texto estiver num <span>/<font> filho com cor própria (comum em
- * temas JSCookMenu), o CSS não chega lá. Aqui checamos a cor computada de
- * cada elemento e só forçamos onde o contraste está ruim (texto muito claro
- * sobre fundo claro = ilegível).
+ * Corrige texto sem contraste suficiente contra o fundo da barra de
+ * navegação (--sc-color-nav-bg). A regra CSS `a { color: ... }` só alcança
+ * o próprio <a> — se o texto estiver num <span>/<font> filho com cor
+ * própria (comum em temas JSCookMenu), o CSS não chega lá. Aqui checamos a
+ * cor computada de cada elemento contra o fundo real (lido ao vivo, não
+ * cravado) e só forçamos onde o contraste está ruim — funciona nos dois
+ * sentidos (texto claro demais no tema claro, texto escuro demais no tema
+ * escuro), ao contrário de um limiar fixo assumindo sempre fundo claro.
  */
 function fixNavBarText(menuBar: Element): void {
+  const navBgLuminance = relativeLuminance(readThemeColor('--sc-color-nav-bg', '#C4D2EB'));
+  if (navBgLuminance === null) return;
+
   menuBar.querySelectorAll<HTMLElement>('*').forEach(el => {
     if (el.id.startsWith('betterui-')) return;
     const style = getComputedStyle(el);
     // Não mexer em texto dentro de um popup flutuante — isso é tratado à
     // parte por fixFloatingPopup (tem seu próprio fundo branco).
     if (style.position === 'absolute' || style.position === 'fixed') return;
-    const luminance = relativeLuminance(style.color);
-    // Navbar agora é clara (#C4D2EB): texto claro demais (luminance > 180,
-    // próximo do branco) precisa ser forçado para azul escuro legível.
-    if (luminance !== null && luminance > 180) {
-      el.style.setProperty('color', '#004C84', 'important');
+    const textLuminance = relativeLuminance(style.color);
+    if (textLuminance === null) return;
+    // Contraste insuficiente entre texto e fundo — limiar estreito (~mesma
+    // janela do limiar fixo original: luminance > 180 contra fundo ~208 de
+    // diferença) pra pegar só texto realmente ilegível, nunca cores
+    // semânticas legítimas (ex: contador em vermelho) nem texto com cor de
+    // hover normal via troca de classe do JSCookMenu — um limiar largo
+    // demais aqui força cor inline em elementos que não precisavam,
+    // travando a cor e quebrando o efeito de hover deles.
+    if (Math.abs(textLuminance - navBgLuminance) < 40) {
+      el.style.setProperty('color', readThemeColor('--sc-color-nav-text', '#004C84'), 'important');
     }
   });
 }
@@ -150,7 +190,7 @@ function fixFloatingPopup(el: HTMLElement): void {
   // (top/left) — isso apaga o fundo/z-index que a gente aplicou da vez
   // anterior. Reaplicar sempre é barato (poucos elementos) e idempotente.
   el.style.setProperty('z-index', '2147483000', 'important');
-  el.style.setProperty('background-color', '#ffffff', 'important');
+  el.style.setProperty('background-color', readThemeColor('--sc-color-bg', '#ffffff'), 'important');
   el.style.setProperty('box-shadow', '0 4px 20px rgba(0,0,0,0.15)', 'important');
 
   el.querySelectorAll<HTMLElement>('*').forEach(child => {
@@ -164,7 +204,7 @@ function fixFloatingPopup(el: HTMLElement): void {
     const currentColor = getComputedStyle(child).color;
     const luminance = relativeLuminance(currentColor);
     if (luminance === null || luminance > 200) {
-      child.style.setProperty('color', '#212529', 'important');
+      child.style.setProperty('color', readThemeColor('--sc-color-text', '#212529'), 'important');
     }
   });
 
@@ -174,18 +214,56 @@ function fixFloatingPopup(el: HTMLElement): void {
   // maior que regra de folha de estilo, mesmo também !important).
   // Trava por linha (não pelo popup inteiro) só pra não duplicar listener
   // quando o mesmo elemento é reaproveitado entre aberturas.
+  //
+  // Aplica a cor tanto na <tr> quanto em cada <td> filho — não confiar em
+  // "fundo transparente da célula deixa o fundo da linha aparecer por
+  // baixo": as células já têm background-color transparent !important
+  // inline (setado acima, pra sempre vencer a regra nativa do SIGAA), e em
+  // alguns casos essa camada some visualmente por cima da linha em vez de
+  // deixá-la transparecer. Setar diretamente nas duas garante o efeito
+  // independente de como o navegador empilha os fundos da tabela.
   const rows = el.querySelectorAll<HTMLElement>('tr');
   const hoverTargets = rows.length > 0 ? rows : el.querySelectorAll<HTMLElement>('td, a');
   hoverTargets.forEach(row => {
     if (row.dataset['scHoverBound'] === 'true') return;
     row.dataset['scHoverBound'] = 'true';
+    const cells = row.tagName === 'TR' ? [...row.querySelectorAll<HTMLElement>('td')] : [row];
     row.addEventListener('mouseenter', () => {
-      row.style.setProperty('background-color', '#f1f3f5', 'important');
+      const bg = readThemeColor('--sc-color-bg-muted', '#f1f3f5');
+      row.style.setProperty('background-color', bg, 'important');
+      cells.forEach(cell => cell.style.setProperty('background-color', bg, 'important'));
     });
     row.addEventListener('mouseleave', () => {
       row.style.setProperty('background-color', 'transparent', 'important');
+      cells.forEach(cell => cell.style.setProperty('background-color', 'transparent', 'important'));
     });
   });
+}
+
+/**
+ * Reaplica a correção de contraste em todas as barras/menus com texto
+ * potencialmente cravado (não só o token CSS) — menu principal, barra de
+ * perfil (#painel-usuario) e o menu de atalhos do usuário logado
+ * (#menu-usuario: Módulos, Abrir Chamado, Menu Discente, Alterar senha) —
+ * mais os popups flutuantes já abertos. Chamada no scan inicial e de novo
+ * a cada alternância de tema, já que o valor forçado por style inline não
+ * acompanha sozinho a troca de --sc-color-nav-* feita pelo toggle.
+ */
+function refreshNavColors(): void {
+  try {
+    document.querySelectorAll<HTMLElement>('.ThemeOfficeSubMenu').forEach(fixFloatingPopup);
+
+    const menuDropdown = resolve(SEL.menu_dropdown);
+    if (menuDropdown) fixNavBarText(menuDropdown);
+
+    const painelUsuario = resolve(SEL.painel_usuario);
+    if (painelUsuario) fixNavBarText(painelUsuario);
+
+    const menuUsuario = resolve(SEL.menu_usuario);
+    if (menuUsuario) fixNavBarText(menuUsuario);
+  } catch {
+    // Falha silenciosa — menu continua funcional, só sem o retoque visual
+  }
 }
 
 function watchNavDropdown(): void {
@@ -196,18 +274,16 @@ function watchNavDropdown(): void {
     // MutationObserver de childList nunca dispararia.
     //
     // Estratégia correta:
-    // 1. Aplicar fixFloatingPopup imediatamente em todos os popups existentes
-    //    (define background e configura listeners de hover nas linhas).
+    // 1. Aplicar fixFloatingPopup/fixNavBarText imediatamente em tudo que já
+    //    existe no DOM (define background/cor e configura hover das linhas).
     // 2. Reagir a mouseover/click na barra para reaplicar caso JSCookMenu
     //    reposicione o popup e resete o style inline (top/left).
 
-    // 1. Fix inicial — cobre todos os submenus já no DOM
-    document.querySelectorAll<HTMLElement>('.ThemeOfficeSubMenu').forEach(fixFloatingPopup);
+    // 1. Fix inicial — cobre tudo já no DOM
+    refreshNavColors();
 
     const menuBar = resolve(SEL.menu_dropdown);
     if (menuBar) {
-      fixNavBarText(menuBar);
-
       // 2. Reaplicar após cada interação com a barra (debounce por frame).
       //    JSCookMenu escreve top/left no style do popup no mesmo evento
       //    mouseover. Nosso rAF roda depois, garantindo que não sobrescrevemos
@@ -334,6 +410,114 @@ function unmountCredit(): void {
   creditHost = null;
 }
 
+const SUN_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+const MOON_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>';
+
+/**
+ * Botão de alternância de tema, no canto superior direito do cabeçalho.
+ *
+ * Dois ancoradouros possíveis, testados em ordem:
+ * 1. `#info-sistema div.dir` — bloco nativo "Tempo de Sessão / SAIR",
+ *    só existe com sessão ativa (portal, turma virtual). Confirmado via
+ *    DevTools: `position:absolute; top:0; right:0; height:16px` fixado
+ *    pelo próprio CSS do SIGAA. O botão entra como primeiro filho, em
+ *    fluxo inline normal — por isso precisa ser pequeno (16px) para não
+ *    estourar a faixa, do mesmo jeito que o texto nativo já estoura
+ *    ligeiramente (overflow visível, comportamento nativo da página).
+ * 2. `#info-sistema` — fallback para a tela de login (sem sessão, sem
+ *    `.dir`). Aqui sim cabe posicionamento absoluto, centralizado
+ *    verticalmente com `top:50%/translateY(-50%)` para não depender da
+ *    altura exata da faixa.
+ *
+ * Vive em Shadow DOM (closed), mesmo padrão de mountCredit(): é elemento
+ * novo, não restilização do existente.
+ */
+function mountThemeToggle(): void {
+  try {
+    const dir = resolve(SEL.info_sistema_dir) as HTMLElement | null;
+
+    themeToggleHost = document.createElement('span');
+    themeToggleHost.id = 'betterui-theme-toggle-host';
+
+    if (dir) {
+      themeToggleHost.style.cssText =
+        'all: initial; display: inline-flex; align-items: center; vertical-align: middle; margin-right: 6px;';
+      dir.insertBefore(themeToggleHost, dir.firstChild);
+    } else {
+      const infoSistema = resolve(SEL.info_sistema) as HTMLElement | null;
+      if (!infoSistema) return; // versão degradada — nenhum ancoradouro disponível
+
+      forceStyle(infoSistema, 'position', 'relative');
+      themeToggleHost.style.cssText =
+        'all: initial; position: absolute; top: 50%; right: 12px; transform: translateY(-50%); z-index: 10;';
+      infoSistema.appendChild(themeToggleHost);
+    }
+
+    const shadow = themeToggleHost.attachShadow({ mode: 'closed' });
+    const style = document.createElement('style');
+    style.textContent = `
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        border: none;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--sc-color-nav-text, #004C84);
+        cursor: pointer;
+        transition: background-color 150ms ease;
+      }
+      button svg {
+        width: 14px;
+        height: 14px;
+      }
+      button:hover {
+        background: var(--sc-color-nav-hover, rgba(0, 76, 132, 0.12));
+      }
+      button:focus-visible {
+        outline: 2px solid var(--sc-color-primary, #1971c2);
+        outline-offset: 2px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        button { transition: none; }
+      }
+    `;
+    shadow.appendChild(style);
+
+    const dark = document.body.classList.contains('sc-theme-dark');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('role', 'switch');
+    button.setAttribute('aria-checked', String(dark));
+    button.setAttribute('aria-label', 'Alternar tema claro/escuro');
+    button.title = 'Alternar tema claro/escuro';
+    button.innerHTML = dark ? SUN_ICON : MOON_ICON;
+
+    button.addEventListener('click', () => {
+      void toggleTheme().then(nowDark => {
+        button.setAttribute('aria-checked', String(nowDark));
+        button.innerHTML = nowDark ? SUN_ICON : MOON_ICON;
+        // Cores forçadas via style inline (fixNavBarText/fixFloatingPopup)
+        // não acompanham sozinhas a troca de tema — precisa recalcular.
+        refreshNavColors();
+      });
+    });
+
+    shadow.appendChild(button);
+    log.debugSync('botão de tema montado', dir ? '(.dir)' : '(#info-sistema)');
+  } catch {
+    // Silencioso — fail-open
+  }
+}
+
+function unmountThemeToggle(): void {
+  themeToggleHost?.remove();
+  themeToggleHost = null;
+}
+
 export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
   // Gate: ativa o CSS via classe no body
   document.body.classList.add('sc-reskin-active');
@@ -345,6 +529,7 @@ export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
   makeLogoClickable();
   renameMenuItem('Emitir Boletim', 'Visualizar Boletim');
   mountCredit();
+  mountThemeToggle();
 
   // Esconder o link "Turma Virtual" / "Portal do Discente" acima do rodapé —
   // redundante: a navegação equivalente já existe no h1 clicável e no menu.
@@ -424,6 +609,15 @@ function applyLoginReskin(): void {
     const table = outrosSistemas.querySelector('table');
     if (table && navHost) {
       addClass(navHost, 'sc-login-nav-host');
+
+      // Defensivo: a tela de login às vezes preserva no DOM o menu de
+      // atalhos do usuário logado (#menu-usuario — Módulos, Abrir Chamado,
+      // Menu Discente, Alterar senha), resquício de navegação anterior —
+      // sem sessão ativa esse menu não deveria existir, mas se existir não
+      // pode aparecer aqui. Esconde qualquer filho pré-existente do
+      // navHost antes de inserir nossos próprios atalhos.
+      [...navHost.children].forEach(child => addClass(child, 'sc-hidden'));
+
       addClass(table, 'sc-login-nav-systems');
       moveNodeBefore(table, navHost, null);
       wrapNavSystemButtons(table);
@@ -863,6 +1057,7 @@ function collapseEmptyRightWidgets(): void {
 export function removeReskin(): void {
   unwatchNavDropdown();
   unmountCredit();
+  unmountThemeToggle();
 
   // Remover event listeners adicionados ao DOM
   for (const { el, type, fn } of domListeners) {

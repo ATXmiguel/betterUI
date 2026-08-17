@@ -545,7 +545,7 @@ const DASHBOARD_CSS = `
 
 .sc-dashboard {
   padding: 0 0 24px;
-  color: #212529;
+  color: var(--sc-color-text);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -553,7 +553,7 @@ const DASHBOARD_CSS = `
 /* ── Cabeçalho ── */
 .sc-dashboard-header {
   padding: 20px 0 16px;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--sc-color-border-subtle);
   margin-bottom: 20px;
 }
 
@@ -569,12 +569,12 @@ const DASHBOARD_CSS = `
   margin: 0;
   font-size: 22px;
   font-weight: 600;
-  color: #212529;
+  color: var(--sc-color-text);
 }
 
 .sc-cache-age {
   font-size: 12px;
-  color: #868e96;
+  color: var(--sc-color-text-muted);
 }
 
 .sc-header-actions {
@@ -600,7 +600,7 @@ const DASHBOARD_CSS = `
 }
 
 .sc-btn:focus-visible {
-  outline: 2px solid #1971c2;
+  outline: 2px solid var(--sc-color-primary);
   outline-offset: 2px;
 }
 
@@ -610,24 +610,24 @@ const DASHBOARD_CSS = `
 }
 
 .sc-btn-primary {
-  background: #1971c2;
-  border-color: #1971c2;
-  color: #fff;
+  background: var(--sc-color-primary);
+  border-color: var(--sc-color-primary);
+  color: var(--sc-color-text-on-primary);
 }
 
 .sc-btn-primary:hover:not(:disabled) {
-  background: #1864ab;
-  border-color: #1864ab;
+  background: var(--sc-color-primary-hover);
+  border-color: var(--sc-color-primary-hover);
 }
 
 .sc-btn-cancel {
-  background: #f1f3f5;
-  border-color: #dee2e6;
-  color: #495057;
+  background: var(--sc-color-bg-muted);
+  border-color: var(--sc-color-border);
+  color: var(--sc-color-text-secondary);
 }
 
 .sc-btn-cancel:hover {
-  background: #e9ecef;
+  background: var(--sc-color-border-subtle);
 }
 
 .sc-btn-sm {
@@ -639,14 +639,14 @@ const DASHBOARD_CSS = `
 .sc-progress-container {
   margin-bottom: 16px;
   padding: 12px 16px;
-  background: #f8f9fa;
+  background: var(--sc-color-bg-subtle);
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--sc-color-border-subtle);
 }
 
 .sc-progress-track {
   height: 6px;
-  background: #dee2e6;
+  background: var(--sc-color-border);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -654,7 +654,7 @@ const DASHBOARD_CSS = `
 
 .sc-progress-fill {
   height: 100%;
-  background: #1971c2;
+  background: var(--sc-color-primary);
   border-radius: 3px;
   transition: width 300ms ease;
 }
@@ -662,26 +662,26 @@ const DASHBOARD_CSS = `
 .sc-progress-text {
   margin: 0;
   font-size: 12px;
-  color: #495057;
+  color: var(--sc-color-text-secondary);
 }
 
 .sc-progress-count {
-  color: #868e96;
+  color: var(--sc-color-text-muted);
 }
 
 /* ── Erros ── */
 .sc-errors {
   margin-bottom: 16px;
   padding: 12px 16px;
-  background: #fff5f5;
-  border: 1px solid #ffa8a8;
+  background: var(--sc-color-danger-bg);
+  border: 1px solid var(--sc-color-danger-border);
   border-radius: 8px;
 }
 
 .sc-error-item {
   margin: 0 0 4px;
   font-size: 13px;
-  color: #c92a2a;
+  color: var(--sc-color-danger);
 }
 
 .sc-error-item:last-child {
@@ -697,18 +697,18 @@ const DASHBOARD_CSS = `
 
 /* ── Card de disciplina ── */
 .sc-card {
-  background: #fff;
-  border: 1px solid #e9ecef;
+  background: var(--sc-color-bg);
+  border: 1px solid var(--sc-color-border-subtle);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: var(--sc-shadow-sm);
   transition: box-shadow 200ms ease, transform 200ms ease;
   display: flex;
   flex-direction: column;
 }
 
 .sc-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: var(--sc-shadow-md);
   transform: translateY(-1px);
 }
 
@@ -730,7 +730,7 @@ const DASHBOARD_CSS = `
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #212529;
+  color: var(--sc-color-text);
   line-height: 1.3;
   /* Trunca nomes muito longos com elipsis */
   display: -webkit-box;
@@ -751,13 +751,13 @@ const DASHBOARD_CSS = `
 }
 
 .sc-card-title-link:hover {
-  color: #1971c2;
+  color: var(--sc-color-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .sc-card-title-link:focus-visible {
-  outline: 2px solid #1971c2;
+  outline: 2px solid var(--sc-color-primary);
   outline-offset: 2px;
   border-radius: 3px;
 }
@@ -774,8 +774,8 @@ const DASHBOARD_CSS = `
   font-size: 11px;
   padding: 2px 7px;
   border-radius: 4px;
-  background: #f1f3f5;
-  color: #495057;
+  background: var(--sc-color-bg-muted);
+  color: var(--sc-color-text-secondary);
   font-family: inherit;
 }
 
@@ -796,20 +796,20 @@ const DASHBOARD_CSS = `
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--sc-color-bg-subtle);
+  border: 1px solid var(--sc-color-border-subtle);
   border-radius: 5px;
   padding: 3px 8px;
   font-size: 11px;
 }
 
 .sc-bimestre-label {
-  color: #868e96;
+  color: var(--sc-color-text-muted);
   font-weight: 500;
 }
 
 .sc-bimestre-nota {
-  color: #212529;
+  color: var(--sc-color-text);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -819,18 +819,18 @@ const DASHBOARD_CSS = `
   align-items: center;
   gap: 8px;
   padding-top: 4px;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--sc-color-border-subtle);
 }
 
 .sc-resultado-label {
   font-size: 11px;
-  color: #868e96;
+  color: var(--sc-color-text-muted);
 }
 
 .sc-resultado-valor {
   font-size: 14px;
   font-weight: 700;
-  color: #212529;
+  color: var(--sc-color-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -844,13 +844,13 @@ const DASHBOARD_CSS = `
 }
 
 .sc-situacao-ok {
-  background: #d3f9d8;
-  color: #2b8a3e;
+  background: var(--sc-color-success-bg);
+  color: var(--sc-color-success);
 }
 
 .sc-situacao-risk {
-  background: #ffe3e3;
-  color: #c92a2a;
+  background: var(--sc-color-danger-bg);
+  color: var(--sc-color-danger);
 }
 
 /* ── Frequência ── */
@@ -864,18 +864,18 @@ const DASHBOARD_CSS = `
 }
 
 .sc-presenca-ok {
-  background: #ebfbee;
-  color: #2b8a3e;
+  background: var(--sc-color-success-bg);
+  color: var(--sc-color-success);
 }
 
 .sc-presenca-warn {
-  background: #fff9db;
-  color: #e67700;
+  background: var(--sc-color-warning-bg);
+  color: var(--sc-color-warning);
 }
 
 .sc-presenca-risk {
-  background: #fff5f5;
-  color: #c92a2a;
+  background: var(--sc-color-danger-bg);
+  color: var(--sc-color-danger);
 }
 
 .sc-freq-pct {
@@ -896,25 +896,25 @@ const DASHBOARD_CSS = `
 }
 
 .sc-freq-limite-ok {
-  background: #ebfbee;
-  color: #2b8a3e;
+  background: var(--sc-color-success-bg);
+  color: var(--sc-color-success);
 }
 
 .sc-freq-limite-warn {
-  background: #fff9db;
-  color: #e67700;
+  background: var(--sc-color-warning-bg);
+  color: var(--sc-color-warning);
 }
 
 .sc-freq-limite-danger {
-  background: #fff5f5;
-  color: #c92a2a;
+  background: var(--sc-color-danger-bg);
+  color: var(--sc-color-danger);
   font-weight: 600;
 }
 
 .sc-card-no-data {
   margin: 0;
   font-size: 11px;
-  color: #adb5bd;
+  color: var(--sc-color-text-faint);
   font-style: italic;
 }
 
@@ -928,18 +928,18 @@ const DASHBOARD_CSS = `
   padding: 2px 0;
   font-family: inherit;
   font-size: 11px;
-  color: #868e96;
+  color: var(--sc-color-text-muted);
   cursor: pointer;
   align-self: flex-start;
   line-height: 1;
 }
 
 .sc-expand-btn:hover {
-  color: #495057;
+  color: var(--sc-color-text-secondary);
 }
 
 .sc-expand-btn:focus-visible {
-  outline: 2px solid #1971c2;
+  outline: 2px solid var(--sc-color-primary);
   outline-offset: 2px;
   border-radius: 3px;
 }
@@ -960,7 +960,7 @@ const DASHBOARD_CSS = `
   flex-direction: column;
   gap: 10px;
   padding-top: 8px;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--sc-color-border-subtle);
 }
 
 .sc-aval-bimestre {
@@ -974,7 +974,7 @@ const DASHBOARD_CSS = `
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #adb5bd;
+  color: var(--sc-color-text-faint);
   margin-bottom: 2px;
 }
 
@@ -986,7 +986,7 @@ const DASHBOARD_CSS = `
 }
 
 .sc-aval-nome {
-  color: #495057;
+  color: var(--sc-color-text-secondary);
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -996,25 +996,25 @@ const DASHBOARD_CSS = `
 
 .sc-aval-nota {
   font-weight: 600;
-  color: #212529;
+  color: var(--sc-color-text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .sc-aval-max {
-  color: #adb5bd;
+  color: var(--sc-color-text-faint);
   font-size: 11px;
   white-space: nowrap;
 }
 
 /* ── Feed de atualizações ── */
 .sc-feed-card {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-left: 4px solid #f08c00;
+  background: var(--sc-color-bg);
+  border: 1px solid var(--sc-color-border-subtle);
+  border-left: 4px solid var(--sc-color-accent-feed);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: var(--sc-shadow-sm);
   margin-bottom: 20px;
 }
 
@@ -1023,7 +1023,7 @@ const DASHBOARD_CSS = `
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px 10px;
-  border-bottom: 1px solid #f1f3f5;
+  border-bottom: 1px solid var(--sc-color-bg-muted);
   width: 100%;
   background: none;
   border-top: none;
@@ -1036,11 +1036,11 @@ const DASHBOARD_CSS = `
 }
 
 .sc-feed-header:hover {
-  background: #fffbf5;
+  background: var(--sc-color-accent-feed-bg);
 }
 
 .sc-feed-header:focus-visible {
-  outline: 2px solid #f08c00;
+  outline: 2px solid var(--sc-color-accent-feed);
   outline-offset: -2px;
   border-radius: 8px 8px 0 0;
 }
@@ -1048,7 +1048,7 @@ const DASHBOARD_CSS = `
 .sc-feed-title {
   font-size: 13px;
   font-weight: 700;
-  color: #212529;
+  color: var(--sc-color-text);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -1061,12 +1061,12 @@ const DASHBOARD_CSS = `
 
 .sc-feed-count {
   font-size: 11px;
-  color: #adb5bd;
+  color: var(--sc-color-text-faint);
 }
 
 .sc-feed-chevron {
   font-size: 9px;
-  color: #adb5bd;
+  color: var(--sc-color-text-faint);
   display: inline-block;
   transition: transform 200ms ease;
 }
@@ -1086,7 +1086,7 @@ const DASHBOARD_CSS = `
   align-items: flex-start;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid #f8f9fa;
+  border-bottom: 1px solid var(--sc-color-bg-subtle);
   transition: background 150ms ease;
 }
 
@@ -1095,14 +1095,14 @@ const DASHBOARD_CSS = `
 }
 
 .sc-feed-item:hover {
-  background: #fffbf5;
+  background: var(--sc-color-accent-feed-bg);
 }
 
 .sc-feed-date {
   flex-shrink: 0;
   font-size: 11px;
   font-weight: 600;
-  color: #f08c00;
+  color: var(--sc-color-accent-feed);
   font-variant-numeric: tabular-nums;
   font-family: inherit;
   padding-top: 1px;
@@ -1123,7 +1123,7 @@ const DASHBOARD_CSS = `
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
-  color: #212529;
+  color: var(--sc-color-text);
   text-align: left;
   cursor: pointer;
   white-space: nowrap;
@@ -1133,20 +1133,20 @@ const DASHBOARD_CSS = `
 }
 
 .sc-feed-turma:hover {
-  color: #1971c2;
+  color: var(--sc-color-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .sc-feed-turma:focus-visible {
-  outline: 2px solid #1971c2;
+  outline: 2px solid var(--sc-color-primary);
   outline-offset: 2px;
   border-radius: 3px;
 }
 
 .sc-feed-tipo {
   font-size: 11px;
-  color: #868e96;
+  color: var(--sc-color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1154,18 +1154,18 @@ const DASHBOARD_CSS = `
 
 .sc-feed-tipo-label {
   font-weight: 600;
-  color: #495057;
+  color: var(--sc-color-text-secondary);
 }
 
 .sc-feed-tipo-desc {
-  color: #868e96;
+  color: var(--sc-color-text-muted);
 }
 
 /* ── Estado vazio ── */
 .sc-empty-state {
   padding: 40px 24px;
   text-align: center;
-  color: #495057;
+  color: var(--sc-color-text-secondary);
 }
 
 .sc-empty-title {
@@ -1182,14 +1182,14 @@ const DASHBOARD_CSS = `
 .sc-empty-info {
   margin: 0;
   font-size: 12px;
-  color: #868e96;
+  color: var(--sc-color-text-muted);
 }
 
 /* ── Rodapé ── */
 .sc-disclaimer {
   margin: 20px 0 0;
   font-size: 11px;
-  color: #adb5bd;
+  color: var(--sc-color-text-faint);
   text-align: center;
 }
 
