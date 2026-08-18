@@ -495,11 +495,17 @@ body.sc-reskin-active #nomeTurma {
   font-family: var(--sc-font-family) !important;
 }
 
-/* Garante que os <p> inline do SIGAA centralizem e quebrem linha corretamente */
+/* Garante que os <p> inline do SIGAA centralizem e quebrem linha corretamente.
+   color: os <p> (#linkCodigoTurma/#linkNomeTurma/#linkPeriodoTurma) têm
+   color:rgb(0,0,0) cravado no CSS nativo (confirmado via getComputedStyle),
+   nunca sobrescrito antes — por isso o texto ficava preto fixo em qualquer
+   tema (mesmo padrão do bug do #menu-usuario: container/texto sem override
+   de cor/fundo). */
 body.sc-reskin-active #nomeTurma p {
   text-align: center !important;
   white-space: normal !important;
   word-break: break-word !important;
+  color: var(--sc-color-text) !important;
 }
 
 body.sc-reskin-active .sc-header-info {
@@ -641,10 +647,16 @@ body.sc-reskin-active div.itemAtivoMenu {
    O seletor :not(.rich-panelbar-interior) garante que só o container externo
    vire flex-column. A altura exata é aplicada pelo JS via forceStyle. */
 
+/* .rich-panelbar e .rich-panelbar-interior têm fundo próprio cravado no CSS
+   nativo (rgb(217,231,248) e rgb(255,255,255) respectivamente, sem
+   !important) — nunca sobrescrito antes. Mesmo padrão do bug do
+   #menu-usuario: o container fica sempre claro por baixo mesmo com os
+   headers/itens filhos reagindo ao tema corretamente. */
 body.sc-reskin-active #barraEsquerda .rich-panelbar:not(.rich-panelbar-interior) {
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
+  background: var(--sc-color-bg) !important;
 }
 
 /* Seções do acordeão: cada uma shrink para sua altura natural (só o header
@@ -652,6 +664,7 @@ body.sc-reskin-active #barraEsquerda .rich-panelbar:not(.rich-panelbar-interior)
 body.sc-reskin-active #barraEsquerda .rich-panelbar-interior {
   flex-shrink: 0 !important;
   overflow: hidden !important;
+  background: var(--sc-color-bg) !important;
 }
 
 /* Área de conteúdo da seção ativa: JS calcula e injeta a altura via forceStyle.
