@@ -290,10 +290,22 @@ body.sc-reskin-active #forum-portal center a:hover {
   border-color: var(--sc-color-primary);
 }
 
-/* Tabela de tópicos */
+/* Tabela de tópicos.
+   table.listagem, tbody e as linhas (.linhaPar/.linhaImpar) têm fundo
+   próprio cravado no CSS nativo (rgb(249,251,253) / rgb(237,241,248), sem
+   !important) — as células ficam transparentes (regras abaixo) mas esses
+   fundos aparecem por baixo delas, deixando a tabela sempre clara em
+   qualquer tema. Mesmo padrão do bug do #menu-usuario: o container é que
+   precisa ser zerado, não só as células. */
 body.sc-reskin-active #forum-portal table.listagem {
   width: 100%;
   border-collapse: collapse;
+}
+
+body.sc-reskin-active #forum-portal table.listagem,
+body.sc-reskin-active #forum-portal table.listagem tbody,
+body.sc-reskin-active #forum-portal table.listagem tr {
+  background: transparent !important;
 }
 
 body.sc-reskin-active #forum-portal table.listagem th {
