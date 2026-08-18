@@ -11,7 +11,7 @@ import { log } from '@/lib/log';
 
 export type VersionStatus = 'ok' | 'mismatch' | 'unknown';
 
-export const HOMOLOGATED_VERSION = 'v4.17.0cefet178';
+export const HOMOLOGATED_VERSION = 'v4.17.0cefet179';
 
 /**
  * Lê a versão do SIGAA no rodapé e retorna o status.
