@@ -295,6 +295,41 @@ function CourseCard({
   );
 }
 
+// ── Toast de sugestão de atualização ──────────────────────────────────────────
+
+/**
+ * Notificação flutuante sugerindo a coleta quando não há dados ainda.
+ * NÃO dispara fetch sozinha — só chama onUpdate() no clique explícito do
+ * usuário (princípio 5 do CLAUDE.md: toda requisição precisa de ação
+ * explícita). O "automático" aqui é só a sugestão aparecer, não a coleta.
+ */
+function UpdatePromptToast({
+  onUpdate,
+  onDismiss,
+}: {
+  onUpdate: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <div class="sc-update-toast" role="status" aria-live="polite">
+      <div class="sc-update-toast-body">
+        <p class="sc-update-toast-title">Nenhum dado coletado ainda</p>
+        <p class="sc-update-toast-sub">
+          Quer coletar notas e frequência de todas as turmas agora?
+        </p>
+      </div>
+      <div class="sc-update-toast-actions">
+        <button class="sc-btn sc-btn-primary sc-btn-sm" type="button" onClick={onUpdate}>
+          Atualizar agora
+        </button>
+        <button class="sc-btn sc-btn-cancel sc-btn-sm" type="button" onClick={onDismiss}>
+          Agora não
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ProgressBar({ info }: { info: ProgressInfo; onCancel: () => void }) {
   const pct = info.total > 0 ? (info.completed / info.total) * 100 : 0;
   const phaseLabel = {
@@ -332,6 +367,7 @@ function Dashboard({
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<ProgressInfo | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
+  const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   // Observa #atualizacoes-turma para quando o AJAX do SIGAA preencher o conteúdo
@@ -377,6 +413,9 @@ function Dashboard({
           frequencia: {},
           versaoSchema: SCHEMA_VERSION_UI,
         });
+        // Sem cache válido: sugere a coleta, mas não a dispara sozinha —
+        // o clique em "Atualizar agora" continua sendo obrigatório.
+        setShowUpdatePrompt(true);
       }
     });
   }, []);
@@ -438,10 +477,22 @@ function Dashboard({
     abortRef.current?.abort();
   }, []);
 
+  const handlePromptUpdate = useCallback(() => {
+    setShowUpdatePrompt(false);
+    handleCollect();
+  }, [handleCollect]);
+
   const firstName = data?.nomeAluno?.split(' ')[0] ?? nomeAlunoInicial?.split(' ')[0] ?? '';
 
   return (
     <div class="sc-dashboard">
+      {showUpdatePrompt && !loading && (
+        <UpdatePromptToast
+          onUpdate={handlePromptUpdate}
+          onDismiss={() => setShowUpdatePrompt(false)}
+        />
+      )}
+
       {/* Cabeçalho */}
       <div class="sc-dashboard-header">
         <div class="sc-greeting-row">
@@ -633,6 +684,50 @@ const DASHBOARD_CSS = `
 .sc-btn-sm {
   padding: 4px 10px;
   font-size: 12px;
+}
+
+/* ── Toast de sugestão de atualização ── */
+@keyframes sc-toast-bounce-in {
+  0% { transform: translateY(-28px) scale(0.92); opacity: 0; }
+  60% { transform: translateY(4px) scale(1.02); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.sc-update-toast {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 2147483000;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--sc-color-bg);
+  border: 1px solid var(--sc-color-border);
+  border-left: 4px solid var(--sc-color-primary);
+  border-radius: 10px;
+  box-shadow: var(--sc-shadow-md);
+  animation: sc-toast-bounce-in 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sc-update-toast-title {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sc-color-text);
+}
+
+.sc-update-toast-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--sc-color-text-secondary);
+}
+
+.sc-update-toast-actions {
+  display: flex;
+  gap: 8px;
 }
 
 /* ── Progresso ── */
@@ -1213,6 +1308,10 @@ const DASHBOARD_CSS = `
 
   .sc-card:hover {
     transform: none;
+  }
+
+  .sc-update-toast {
+    animation: none;
   }
 }
 `;
