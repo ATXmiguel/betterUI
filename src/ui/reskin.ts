@@ -157,6 +157,7 @@ function relativeLuminance(color: string): number | null {
 function fixNavBarText(menuBar: Element): void {
   const navBgLuminance = relativeLuminance(readThemeColor('--sc-color-nav-bg', '#C4D2EB'));
   if (navBgLuminance === null) return;
+  const navText = readThemeColor('--sc-color-nav-text', '#004C84');
 
   menuBar.querySelectorAll<HTMLElement>('*').forEach(el => {
     if (el.id.startsWith('betterui-')) return;
@@ -164,6 +165,19 @@ function fixNavBarText(menuBar: Element): void {
     // Não mexer em texto dentro de um popup flutuante — isso é tratado à
     // parte por fixFloatingPopup (tem seu próprio fundo branco).
     if (style.position === 'absolute' || style.position === 'fixed') return;
+
+    // Elemento que a gente já decidiu forçar numa passada anterior: manter
+    // sincronizado com o token do tema atual em vez de reavaliar contraste.
+    // Reavaliar de novo seria comparar a cor que A GENTE MESMA escreveu da
+    // vez passada contra o fundo do tema novo — isso trava o texto na cor
+    // do tema anterior sempre que o toggle troca o tema (o valor computado
+    // deixa de refletir a cor nativa do SIGAA e passa a refletir só o que
+    // já foi forçado).
+    if (el.dataset['scNavTextForced'] === 'true') {
+      el.style.setProperty('color', navText, 'important');
+      return;
+    }
+
     const textLuminance = relativeLuminance(style.color);
     if (textLuminance === null) return;
     // Contraste insuficiente entre texto e fundo — limiar estreito (~mesma
@@ -174,7 +188,8 @@ function fixNavBarText(menuBar: Element): void {
     // demais aqui força cor inline em elementos que não precisavam,
     // travando a cor e quebrando o efeito de hover deles.
     if (Math.abs(textLuminance - navBgLuminance) < 40) {
-      el.style.setProperty('color', readThemeColor('--sc-color-nav-text', '#004C84'), 'important');
+      el.style.setProperty('color', navText, 'important');
+      el.dataset['scNavTextForced'] = 'true';
     }
   });
 }
@@ -193,18 +208,42 @@ function fixFloatingPopup(el: HTMLElement): void {
   el.style.setProperty('background-color', readThemeColor('--sc-color-bg', '#ffffff'), 'important');
   el.style.setProperty('box-shadow', '0 4px 20px rgba(0,0,0,0.15)', 'important');
 
+  const popupText = readThemeColor('--sc-color-text', '#212529');
   el.querySelectorAll<HTMLElement>('*').forEach(child => {
     if (child.id.startsWith('betterui-')) return;
-    child.style.setProperty('background-color', 'transparent', 'important');
+
+    // Zera o fundo só na primeira passagem por este elemento. Reaplicar
+    // isso incondicionalmente a cada rescan (watchNavDropdown reescaneia a
+    // cada mouseover na barra) apagava o cinza de hover aplicado pelo
+    // listener de mouseenter/mouseleave abaixo: como os popups são filhos
+    // de #menu-dropdown, passar o mouse pelas opções borbulha o mouseover
+    // até a barra e dispara um novo rescan — que, sem esta trava, resetava
+    // o fundo da linha hovered pra transparent no mesmo frame, apagando
+    // qualquer indicação visual de qual item está sob o cursor.
+    if (child.dataset['scBgTransparent'] !== 'true') {
+      child.style.setProperty('background-color', 'transparent', 'important');
+      child.dataset['scBgTransparent'] = 'true';
+    }
+
+    // Mesma lógica de "manter sincronizado" do fixNavBarText: se já
+    // forçamos a cor desse elemento antes, reescrevê-la para o token atual
+    // em vez de reavaliar contraste contra um valor que a gente mesma
+    // escreveu (senão o texto do popup fica preso na cor do tema anterior
+    // depois de um toggle).
+    if (child.dataset['scTextForced'] === 'true') {
+      child.style.setProperty('color', popupText, 'important');
+      return;
+    }
 
     // Só força a cor do texto se o valor atual for claro demais para o fundo
-    // branco que acabamos de fixar (texto "invisível" é o sintoma real
-    // reportado). Preserva cores semânticas (ex: contador vermelho) que já
-    // têm contraste suficiente.
+    // que acabamos de fixar (texto "invisível" é o sintoma real reportado).
+    // Preserva cores semânticas (ex: contador vermelho) que já têm
+    // contraste suficiente.
     const currentColor = getComputedStyle(child).color;
     const luminance = relativeLuminance(currentColor);
     if (luminance === null || luminance > 200) {
-      child.style.setProperty('color', readThemeColor('--sc-color-text', '#212529'), 'important');
+      child.style.setProperty('color', popupText, 'important');
+      child.dataset['scTextForced'] = 'true';
     }
   });
 

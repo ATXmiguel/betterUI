@@ -812,7 +812,14 @@ body.sc-reskin-active #painel-usuario {
   color: var(--sc-color-nav-text) !important;
 }
 
+/* #menu-usuario (container de "Módulos/Abrir Chamado/Menu Discente/Alterar
+   senha") tem fundo próprio cravado no CSS nativo — rgb(196,210,235), que
+   por coincidência é EXATAMENTE --sc-color-nav-bg do tema claro (por isso
+   passava despercebido). No tema escuro esse fundo nunca mudava: o
+   retângulo ao redor do texto ficava sempre claro, fazendo a área parecer
+   "presa" mesmo com o texto do <a> corretamente reagindo via var(). */
 body.sc-reskin-active #menu-usuario {
+  background: var(--sc-color-nav-bg) !important;
   font-family: var(--sc-font-family) !important;
   font-size: var(--sc-font-size-sm) !important;
   color: var(--sc-color-nav-text) !important;
