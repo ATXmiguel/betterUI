@@ -35,3 +35,30 @@ resolvem sem alteração na v179 — mudança de patch não alterou o DOM
 relevante. Fix: apenas atualizar `HOMOLOGATED_VERSION` em
 `src/selectors/version.ts` e o comentário em `src/selectors/map.ts`. Nenhum
 seletor foi alterado.
+
+---
+
+## 2026-08-24 — Bump da versão homologada para v4.17.0cefet180
+
+Mesmo padrão do bump anterior (2026-08-18): CEFET atualizou o patch do SIGAA
+(v4.17.0cefet179 → v4.17.0cefet180), ativando modo degradado de novo —
+reportado pelo usuário via print da tela de login com contraste quebrado no
+tema escuro (caixa "ATENÇÃO!" e grade de sistemas com fundo claro nativo
+intocado, texto no token do tema escuro por cima). Causa raiz: com
+`version !== 'ok'`, `applyReskin()` retorna cedo e nunca chama
+`applyLoginReskin()`/`applyPortalReskin()`/`applyTurmaVirtualReskin()` — só o
+CSS base (sempre ativo) roda, deixando classes `sc-login-*` nunca aplicadas
+e o layout nativo (com fundos claros hardcoded) por baixo do tema escuro.
+
+Confirmado ao vivo via DevTools (login pública, sem sessão, e portal
+logado) que todos os seletores relevantes (`div.logon`,
+`#conteudo div[align="center"]:has(td.painel)`, `#conteudo table[width="500"]`,
+`#painel-usuario`, `#turmas-portal`, `#main-docente`, `#conteudo`) resolvem
+sem alteração na v180 — mudança de patch não alterou o DOM. Fix: apenas
+atualizar `HOMOLOGATED_VERSION` em `src/selectors/version.ts` e o comentário
+em `src/selectors/map.ts`. Nenhum seletor foi alterado.
+
+Nota para o futuro: esse é o segundo bump de patch em uma semana que ativa
+modo degradado silenciosamente — vale considerar deixar o aviso de "modo
+degradado" mais visível na UI (hoje é discreto), já que o usuário só percebe
+pelo sintoma (cards/reskin sumidos), não por uma mensagem clara.
