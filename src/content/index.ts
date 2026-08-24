@@ -18,6 +18,7 @@ import { initTheme } from '@/ui/theme';
 import { clearOnLogout } from '@/storage/cache';
 import { parseTurmas } from '@/parsers/turmas';
 import type { TurmaInfo } from '@/types';
+import type { SigaaRoute } from '@/content/router';
 
 safe(async () => {
   await initLog();
@@ -30,18 +31,18 @@ safe(async () => {
   // evitar flash de tema claro em quem já escolheu o escuro.
   await initTheme();
 
-  const route = detectRoute();
-  log.debug('rota detectada:', route);
+  let currentRoute = detectRoute();
+  log.debug('rota detectada:', currentRoute);
 
   // Não fazer nada em páginas não mapeadas
-  if (route === 'unknown') {
+  if (currentRoute === 'unknown') {
     log.debug('rota desconhecida — extensão inativa nesta página');
     return;
   }
 
   // Ler estado de ativação (padrão: true)
   const stored = await chrome.storage.local.get('betterui_enabled');
-  const enabled = stored['betterui_enabled'] !== false;
+  let enabled = stored['betterui_enabled'] !== false;
 
   // Verificar versão do SIGAA
   const versionStatus = checkVersion();
@@ -50,7 +51,7 @@ safe(async () => {
   let dashboardMounted = false;
 
   function tryMountDashboard(): void {
-    if (route !== 'portal' || versionStatus !== 'ok') return;
+    if (currentRoute !== 'portal' || versionStatus !== 'ok') return;
     const matricula = readMatricula();
     if (!matricula) {
       log.debugSync('dashboard: matrícula não encontrada');
@@ -73,8 +74,9 @@ safe(async () => {
   // Toggle: sempre montado, mesmo se a extensão estiver desativa,
   // para que o usuário possa reativar
   mountToggle(enabled, versionStatus, (newState: boolean) => {
+    enabled = newState;
     if (newState) {
-      applyReskin(route, versionStatus);
+      applyReskin(currentRoute, versionStatus);
       if (!dashboardMounted) tryMountDashboard();
     } else {
       removeReskin();
@@ -85,11 +87,101 @@ safe(async () => {
   });
 
   if (enabled) {
-    applyReskin(route, versionStatus);
+    applyReskin(currentRoute, versionStatus);
     tryMountDashboard();
   }
 
+  // O SIGAA (JSF/RichFaces) reescreve partes do DOM via postback AJAX sem
+  // recarregar a página (ex: navegação portal <-> turma virtual, refresh do
+  // carrossel de atualizações) — o content script não roda de novo nesses
+  // casos, então o reskin e o dashboard somem silenciosamente do DOM
+  // reescrito. Reconciliamos sob demanda em vez de reaplicar sempre, para
+  // não perder estado (ex: coleta em andamento) a cada mutação irrelevante.
+  watchForAjaxRerender();
+
   log.debug('bootstrap concluído');
+
+  function reskinLooksIntact(r: SigaaRoute): boolean {
+    if (!document.body.classList.contains('sc-reskin-active')) return false;
+    if (r === 'portal') {
+      const turmas = resolve(SEL.turmas_portal);
+      return !turmas || turmas.classList.contains('sc-hidden');
+    }
+    if (r !== 'login') {
+      const acoes = resolve(SEL.acoes_turma);
+      return !acoes || acoes.classList.contains('sc-hidden');
+    }
+    return true;
+  }
+
+  function reconcile(): void {
+    if (!enabled) return;
+    const newRoute = detectRoute();
+    if (newRoute === 'unknown') return;
+
+    const routeChanged = newRoute !== currentRoute;
+    const dashboardGone =
+      newRoute === 'portal' &&
+      dashboardMounted &&
+      !document.getElementById('betterui-dashboard-host');
+    const reskinReverted = !reskinLooksIntact(newRoute);
+
+    if (!routeChanged && !dashboardGone && !reskinReverted) return;
+
+    log.debugSync(
+      'reconcile: DOM reescrito via AJAX pelo SIGAA — reaplicando',
+      'rota:', currentRoute, '→', newRoute,
+      'dashboardGone:', dashboardGone, 'reskinReverted:', reskinReverted,
+    );
+
+    if (routeChanged || dashboardGone) {
+      unmountDashboard();
+      dashboardMounted = false;
+    }
+    removeReskin();
+    currentRoute = newRoute;
+    applyReskin(currentRoute, versionStatus);
+    if (currentRoute === 'portal' && !dashboardMounted) tryMountDashboard();
+  }
+
+  function watchForAjaxRerender(): void {
+    let pending = false;
+    const scheduleReconcile = (): void => {
+      try {
+        if (pending) return;
+        pending = true;
+        setTimeout(() => {
+          pending = false;
+          safe(() => reconcile());
+        }, 300);
+      } catch {
+        // Silencioso — fail-open
+      }
+    };
+
+    try {
+      const target = document.getElementById('conteudo') ?? document.body;
+      const observer = new MutationObserver(scheduleReconcile);
+      observer.observe(target, { childList: true, subtree: true });
+    } catch {
+      // Silencioso — sem observer, reskin pode ficar desatualizado após
+      // AJAX, mas a página original continua 100% funcional (fail-open).
+    }
+
+    try {
+      const jsfGlobal = (window as unknown as {
+        jsf?: { ajax?: { addOnEvent?: (cb: (data: { status: string }) => void) => void } };
+      }).jsf;
+      if (jsfGlobal?.ajax?.addOnEvent) {
+        jsfGlobal.ajax.addOnEvent(data => {
+          if (data.status === 'success') scheduleReconcile();
+        });
+        log.debugSync('watchForAjaxRerender: hook jsf.ajax registrado');
+      }
+    } catch {
+      // Silencioso — hook opcional, o MutationObserver já cobre o essencial
+    }
+  }
 });
 
 /**
