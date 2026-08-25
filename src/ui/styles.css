@@ -130,6 +130,16 @@ body.sc-reskin-active #conteudo h5 {
   color: var(--sc-color-text);
 }
 
+/* legend — títulos de seção em fieldsets nativos (ex: "Andamento das
+   Aulas", "Notícias", "Tarefas Individuais"). CSS nativo crava
+   color: rgb(21,66,139) direto no elemento — um match direto sempre vence
+   herança do #conteudo, mesmo sem !important do lado nativo. Sem esse
+   fix, o azul-marinho original vira "escuro sobre escuro" no tema escuro
+   em praticamente toda página que usa esse padrão. */
+body.sc-reskin-active legend {
+  color: var(--sc-color-primary) !important;
+}
+
 /* ══════════════════════════════════════════════════════════
    2. Utilitários de visibilidade (adicionados via JS)
    ══════════════════════════════════════════════════════════ */
@@ -424,6 +434,7 @@ body.sc-reskin-active table.listing th {
 body.sc-reskin-active table.listing td {
   padding: var(--sc-space-2) var(--sc-space-4);
   border-bottom: 1px solid var(--sc-color-border-subtle);
+  color: var(--sc-color-text) !important;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -822,6 +833,14 @@ body.sc-reskin-active #barraDireita .rich-stglpanel-body b {
   margin-bottom: 2px !important;
 }
 
+/* span.data — data de cada item (ex: "24/08") na lista do widget
+   "Atividades". CSS nativo crava color: rgb(85,85,85) direto no span —
+   um match direto no elemento vence a herança de .rich-stglpanel-body,
+   mesmo esta tendo !important, então a data nunca acompanhava o tema. */
+body.sc-reskin-active #barraDireita .rich-stglpanel-body span.data {
+  color: var(--sc-color-text-muted) !important;
+}
+
 /* Widgets marcados como vazios pelo JS (sc-widget-empty) —
    body ocultado via inline style no JS (sem !important) para que
    o toggle nativo do SIGAA possa reexpandir ao clicar no header */
@@ -940,6 +959,23 @@ body.sc-reskin-active .acao-topico {
   display: none !important;
 }
 
+/* "Última Notícia" — caixa de destaque no topo da timeline de aulas
+   (#ultimaNoticia, class="descricaoOperacao" — mesma classe usada em
+   outras caixas de destaque do SIGAA). CSS nativo crava
+   background: rgb(255,255,213) (amarelo claro) sem !important — igual ao
+   padrão do bug do #menu-usuario: some fundo claro atrás de texto que
+   passa a herdar a cor do tema, ficando ilegível/deslocado no escuro. */
+body.sc-reskin-active #ultimaNoticia,
+body.sc-reskin-active div.descricaoOperacao {
+  background: var(--sc-color-bg-subtle) !important;
+  border-color: var(--sc-color-border) !important;
+}
+
+body.sc-reskin-active #ultimaNoticia,
+body.sc-reskin-active #ultimaNoticia * {
+  color: var(--sc-color-text) !important;
+}
+
 /* ── Área de conteúdo principal ─────────────────────────── */
 
 /* H3 — título de disciplina/página no topo do conteúdo */
@@ -996,6 +1032,15 @@ body.sc-reskin-active .rich-panel-body {
   font-size: var(--sc-font-size-sm) !important;
 }
 
+/* .infoAltRem — barra de legenda cinza-claro (ex: legenda de ícones
+   "Enviar Tarefa / Visualizar Tarefa Enviada / Tarefa Corrigida" acima
+   de table.listing). CSS nativo crava background: rgb(245,245,245) sem
+   !important — mesmo padrão de fundo claro travado no tema escuro. */
+body.sc-reskin-active .infoAltRem {
+  background: var(--sc-color-bg-subtle) !important;
+  color: var(--sc-color-text) !important;
+}
+
 /* tituloPortlet — títulos de portlets na turma */
 body.sc-reskin-active .tituloPortlet,
 body.sc-reskin-active td.tituloPortlet {
@@ -1017,6 +1062,18 @@ body.sc-reskin-active tr.linhaPar > td {
 
 body.sc-reskin-active .linhaImpar td,
 body.sc-reskin-active tr.linhaImpar > td {
+  background: var(--sc-color-bg-subtle) !important;
+}
+
+/* table.listing (ex: "Tarefas Individuais") usa classes nativas
+   .even/.odd em vez de linhaPar/linhaImpar — mesmo bug de fundo claro
+   nunca sobrescrito, nunca coberto pelas regras acima por terem seletor
+   diferente. */
+body.sc-reskin-active table.listing tr.odd td {
+  background: var(--sc-color-bg) !important;
+}
+
+body.sc-reskin-active table.listing tr.even td {
   background: var(--sc-color-bg-subtle) !important;
 }
 
