@@ -387,29 +387,37 @@ body.sc-reskin-active #rodape {
    Aplicamos tipografia consistente nas páginas de notas,
    frequência e materiais. */
 
-/* Notas: .tabelaRelatorio */
+/* Notas: .tabelaRelatorio — regras sem !important abaixo eram
+   sobrescritas pelo CSS nativo do SIGAA (carregado depois do nosso),
+   que crava fundo branco em th/td. O texto herdava a cor clara do tema
+   escuro por cima desse branco nativo — mesmo bug de "fantasma"
+   documentado em outras seções deste arquivo. */
 body.sc-reskin-active .tabelaRelatorio {
-  font-family: var(--sc-font-family);
-  font-size: var(--sc-font-size-sm);
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
+  font-family: var(--sc-font-family) !important;
+  font-size: var(--sc-font-size-sm) !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100% !important;
+  background: var(--sc-color-bg) !important;
 }
 
 body.sc-reskin-active .tabelaRelatorio th {
-  padding: var(--sc-space-2) var(--sc-space-3);
-  font-size: var(--sc-font-size-xs);
-  font-weight: var(--sc-font-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  background: var(--sc-color-bg-subtle);
-  border-bottom: 2px solid var(--sc-color-border);
-  white-space: nowrap;
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  font-size: var(--sc-font-size-xs) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  background: var(--sc-color-bg-subtle) !important;
+  color: var(--sc-color-text-secondary) !important;
+  border-bottom: 2px solid var(--sc-color-border) !important;
+  white-space: nowrap !important;
 }
 
 body.sc-reskin-active .tabelaRelatorio td {
-  padding: var(--sc-space-2) var(--sc-space-3);
-  border-bottom: 1px solid var(--sc-color-border-subtle);
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  border-bottom: 1px solid var(--sc-color-border-subtle) !important;
+  background: var(--sc-color-bg) !important;
+  color: var(--sc-color-text) !important;
 }
 
 /* Frequência: table.listing */
@@ -976,6 +984,20 @@ body.sc-reskin-active #ultimaNoticia * {
   color: var(--sc-color-text) !important;
 }
 
+/* Caixa de boas-vindas "Turma Virtual!" (mensagem de introdução da turma) —
+   mesmo bug: div.intro-aval crava fundo branco e div.textos crava
+   rgb(247,248,250), sem !important, então o tema escuro nunca sobrescreve
+   e o texto (herdado claro) some contra o fundo claro. */
+body.sc-reskin-active .intro-aval,
+body.sc-reskin-active .intro-aval .textos {
+  background: var(--sc-color-bg-subtle) !important;
+}
+
+body.sc-reskin-active .intro-aval,
+body.sc-reskin-active .intro-aval * {
+  color: var(--sc-color-text) !important;
+}
+
 /* ── Área de conteúdo principal ─────────────────────────── */
 
 /* H3 — título de disciplina/página no topo do conteúdo */
@@ -1065,15 +1087,31 @@ body.sc-reskin-active tr.linhaImpar > td {
   background: var(--sc-color-bg-subtle) !important;
 }
 
-/* table.listing (ex: "Tarefas Individuais") usa classes nativas
-   .even/.odd em vez de linhaPar/linhaImpar — mesmo bug de fundo claro
-   nunca sobrescrito, nunca coberto pelas regras acima por terem seletor
-   diferente. */
-body.sc-reskin-active table.listing tr.odd td {
+/* Fundo claro cravado na própria <table> nativa (não só nas linhas) —
+   ex: table.participantes tem background: rgb(249,251,253) direto na
+   tag. Regra genérica: qualquer <table> dentro de #conteudo tem o fundo
+   zerado por padrão. Regras mais específicas (maior especificidade de
+   seletor) em outras partes do arquivo continuam vencendo normalmente
+   mesmo com !important dos dois lados — só empatam e perdem por ordem
+   se tiverem a mesma especificidade, o que não é o caso aqui. */
+body.sc-reskin-active #conteudo table {
+  background: transparent !important;
+}
+
+/* Várias tabelas nativas do SIGAA (table.listing, table.participantes,
+   e outras não catalogadas) usam as classes .odd/.even em vez de
+   linhaPar/linhaImpar — mesmo bug de fundo claro cravado por linha,
+   nunca coberto pelas regras acima por terem seletor diferente.
+   Regra genérica (sem amarrar à classe da tabela) para cobrir qualquer
+   tabela nativa dentro de #conteudo que use essa convenção, em vez de
+   ir corrigindo tabela por tabela cada vez que aparece em uma tela nova. */
+body.sc-reskin-active #conteudo tr.odd > td,
+body.sc-reskin-active #conteudo tr.odd > th {
   background: var(--sc-color-bg) !important;
 }
 
-body.sc-reskin-active table.listing tr.even td {
+body.sc-reskin-active #conteudo tr.even > td,
+body.sc-reskin-active #conteudo tr.even > th {
   background: var(--sc-color-bg-subtle) !important;
 }
 
@@ -1518,6 +1556,21 @@ body.sc-reskin-active .sc-login-hint {
   box-sizing: border-box;
 }
 
+/* A caixa "ATENÇÃO!" nativa às vezes embrulha o texto numa <table> própria
+   (padrão antigo do SIGAA), com fundo sólido cravado em table/tbody/tr/td —
+   mesmo bug documentado abaixo para .sc-login-card e .sc-login-links.
+   `background: none` no wrapper acima não alcança essas camadas internas:
+   sobrava um retângulo claro atrás do texto em tema escuro, com o texto
+   cinza (pensado para fundo escuro) quase ilegível por cima. */
+body.sc-reskin-active .sc-login-hint table,
+body.sc-reskin-active .sc-login-hint tbody,
+body.sc-reskin-active .sc-login-hint tr,
+body.sc-reskin-active .sc-login-hint th,
+body.sc-reskin-active .sc-login-hint td {
+  background: transparent !important;
+  border: none !important;
+}
+
 body.sc-reskin-active .sc-login-hint p {
   width: 100% !important;
   margin: 0 !important;
@@ -1770,17 +1823,24 @@ body.sc-reskin-active .sc-login-nav-host {
    tabelas: sem isso o Chrome preserva o layout de tabela por baixo e o
    flex do tbody não estica de verdade, sobrando uma tira sem cobertura
    de hover na base da barra. */
+/* A <table> nativa (e o tbody) têm fundo sólido cravado, independente do
+   `background: transparent` já aplicado em td.painel abaixo — como table/tbody
+   ficam entre o host escuro (.sc-login-nav-host) e as células transparentes,
+   é o fundo claro DELES que aparece por baixo das células, não o do host.
+   Mesmo padrão de bug já documentado em .sc-login-card/.sc-login-links. */
 body.sc-reskin-active .sc-login-nav-systems {
   display: flex !important;
   width: 100% !important;
   height: 100% !important;
   border-spacing: 0 !important;
+  background: transparent !important;
 }
 
 body.sc-reskin-active .sc-login-nav-systems tbody {
   display: flex !important;
   width: 100% !important;
   height: 100% !important;
+  background: transparent !important;
 }
 
 body.sc-reskin-active .sc-login-nav-systems tr {

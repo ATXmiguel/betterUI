@@ -5,7 +5,7 @@
  * Quando o SIGAA mudar, o conserto é aqui, em um só lugar.
  *
  * Seletores derivados de docs/MAPEAMENTO.md.
- * Versão homologada: v4.17.0cefet180
+ * Versão homologada: v4.17.0cefet181
  */
 
 export interface SeletorSpec {

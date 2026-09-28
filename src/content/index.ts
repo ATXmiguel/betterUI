@@ -145,15 +145,35 @@ safe(async () => {
   }
 
   function watchForAjaxRerender(): void {
-    let pending = false;
+    // Throttle (não debounce puro): uma rajada de mutações do SIGAA (ex:
+    // cards de turma populando um a um via AJAX) reinicia um debounce a
+    // cada mutação — reconcile() só rodaria quando a rajada parasse, o que
+    // podia levar segundos. Nesse intervalo o DOM reescrito fica sem as
+    // classes sc-reskin-active/sc-theme-dark reaplicadas: fundo/cores
+    // nativos claros aparecem por cima do tema escuro (flash visível,
+    // "ilhas claras" na interface). Com throttle, reconcile roda no máximo
+    // a cada RECONCILE_THROTTLE_MS mesmo durante uma rajada contínua.
+    const RECONCILE_THROTTLE_MS = 300;
+    let lastRun = 0;
+    let trailingTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const runReconcile = (): void => {
+      lastRun = Date.now();
+      safe(() => reconcile());
+    };
+
     const scheduleReconcile = (): void => {
       try {
-        if (pending) return;
-        pending = true;
-        setTimeout(() => {
-          pending = false;
-          safe(() => reconcile());
-        }, 300);
+        const elapsed = Date.now() - lastRun;
+        if (elapsed >= RECONCILE_THROTTLE_MS) {
+          runReconcile();
+          return;
+        }
+        if (trailingTimer) return;
+        trailingTimer = setTimeout(() => {
+          trailingTimer = null;
+          runReconcile();
+        }, RECONCILE_THROTTLE_MS - elapsed);
       } catch {
         // Silencioso — fail-open
       }

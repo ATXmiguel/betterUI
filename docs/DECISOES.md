@@ -62,3 +62,52 @@ Nota para o futuro: esse é o segundo bump de patch em uma semana que ativa
 modo degradado silenciosamente — vale considerar deixar o aviso de "modo
 degradado" mais visível na UI (hoje é discreto), já que o usuário só percebe
 pelo sintoma (cards/reskin sumidos), não por uma mensagem clara.
+
+---
+
+## 2026-09-10 — Bump da versão homologada para v4.17.0cefet181
+
+Terceira ocorrência do mesmo padrão (2026-08-18, 2026-08-24): CEFET
+atualizou o patch do SIGAA (v4.17.0cefet180 → v4.17.0cefet181), ativando
+modo degradado de novo. Reportado pelo usuário como bug recorrente antes
+mesmo do diagnóstico.
+
+Confirmado ao vivo via DevTools (portal logado) que os seletores-chave
+(`#rodape`, `#info-sistema`, `#painel-usuario`, `#container`, `#conteudo`)
+resolvem sem alteração na v181 — mudança de patch não alterou o DOM. Fix:
+apenas atualizar `HOMOLOGATED_VERSION` em `src/selectors/version.ts` e o
+comentário em `src/selectors/map.ts`. Nenhum seletor foi alterado.
+
+---
+
+## 2026-09-28 — Mais fundos "fantasma" no tema escuro (v0.1.7)
+
+Continuação do padrão documentado desde 2026-08-17: CSS nativo do SIGAA
+carrega depois do nosso e crava `background`/`color` sem `!important` em
+elementos ainda não catalogados, deixando texto claro do tema escuro
+ilegível sobre fundo branco nativo. Casos novos cobertos:
+
+- `.tabelaRelatorio` (tabela de notas): th/td tinham fundo branco nativo
+  sem `!important`; texto herdava a cor clara do tema por cima.
+- `.intro-aval` / `.intro-aval .textos` (caixa "Turma Virtual!" de
+  boas-vindas): mesmo padrão.
+- `.sc-login-hint table/tbody/tr/th/td` (caixa "ATENÇÃO!" do login, às
+  vezes embrulhada em `<table>` legada).
+- `.sc-login-nav-systems` / `tbody`: fundo sólido na tag nativa por baixo
+  das células já transparentes.
+- **Regra genérica nova**: `#conteudo table` zera fundo de qualquer tabela
+  nativa dentro do conteúdo (não só as catalogadas manualmente), e
+  `tr.odd`/`tr.even` passou de específico a `table.listing` para genérico
+  em `#conteudo` — cobre telas futuras sem precisar catalogar tabela por
+  tabela cada vez que uma nova aparece.
+
+Também corrigido em `src/content/index.ts`: `watchForAjaxRerender()` usava
+debounce puro, então uma rajada contínua de mutações (ex: cards de turma
+populando via AJAX) adiava `reconcile()` por segundos — nesse intervalo o
+DOM reescrito ficava sem `sc-reskin-active`/`sc-theme-dark` reaplicado,
+causando flash visível de fundo claro. Trocado para throttle (300ms, com
+trailing call), garantindo reconcile periódico mesmo durante a rajada.
+
+Build + typecheck OK. Teste ao vivo não pôde ser feito nesta sessão (sem
+acesso à extensão "Claude for Chrome" pareada — ver runbook de memória);
+fica pendente de confirmação visual do usuário na próxima sessão.
