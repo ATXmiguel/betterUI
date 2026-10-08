@@ -80,6 +80,25 @@ comentário em `src/selectors/map.ts`. Nenhum seletor foi alterado.
 
 ---
 
+## 2026-10-08 — Bump da versão homologada para v4.17.0cefet182
+
+Quarta ocorrência do mesmo padrão (2026-08-18, 2026-08-24, 2026-09-10):
+CEFET atualizou o patch do SIGAA (v4.17.0cefet181 → v4.17.0cefet182),
+ativando modo degradado de novo. Reportado pelo usuário como "teve
+atualização e quebrou", sem mais detalhes — diagnosticado via `#rodape`
+antes de investigar seletor por seletor, confirmando o padrão já conhecido.
+
+Confirmado ao vivo via DevTools (tela de login, sem sessão) que os
+seletores de login (`div.logon`, `#conteudo div[align="center"]`,
+`#conteudo div[align="center"]:has(td.painel)`, `#conteudo table[width="500"]`,
+`#conteudo table:has(img[src*="firefox"])`, `#info-sistema`,
+`#info-sistema h1`, `#rodape`) resolvem sem alteração na v182 — mudança de
+patch não alterou o DOM. Fix: apenas atualizar `HOMOLOGATED_VERSION` em
+`src/selectors/version.ts` e o comentário em `src/selectors/map.ts`. Nenhum
+seletor foi alterado.
+
+---
+
 ## 2026-09-28 — Mais fundos "fantasma" no tema escuro (v0.1.7)
 
 Continuação do padrão documentado desde 2026-08-17: CSS nativo do SIGAA
