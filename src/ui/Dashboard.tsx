@@ -13,6 +13,7 @@ import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import { collectAll } from '@/fetchers/collect';
 import { loadColecao, cacheAge } from '@/storage/cache';
 import { parseAtualizacoes } from '@/parsers/atualizacoes';
+import { resolveAll, SEL } from '@/selectors/map';
 import type { ColecaoCompleta, NotasTurma, FrequenciaTurma, TurmaInfo, ProgressInfo, AtualizacaoItem } from '@/types';
 
 // ── Utilitários ───────────────────────────────────────────────────────────────
@@ -65,76 +66,261 @@ function FreqLimite({ frequencia }: { frequencia: FrequenciaTurma }) {
  */
 function navigateToAtualizacao(idTurma: string | null): void {
   if (!idTurma) return;
-  const links = document.querySelectorAll<HTMLAnchorElement>(
-    '#atualizacoes-turma a[onclick]',
-  );
-  for (const link of links) {
+  for (const link of resolveAll(SEL.atualizacoes_links)) {
     if (link.getAttribute('onclick')?.includes(`'idTurma':'${idTurma}'`)) {
-      link.click();
+      (link as HTMLElement).click();
       return;
     }
   }
 }
 
-// ── Card de atualizações recentes ─────────────────────────────────────────────
+// ── Card de novidades das turmas ──────────────────────────────────────────────
 
-function AtualizacoesCard({ items }: { items: AtualizacaoItem[] }) {
-  const [expanded, setExpanded] = useState(false);
+const NOVIDADES_VISIVEIS = 4;
 
-  if (items.length === 0) return null;
+/** "28/10/2026" → "hoje" / "ontem" / "28/10" */
+function relativeDate(d: string): string {
+  const [dd, mm, yyyy] = d.split('/').map(Number);
+  if (!dd || !mm || !yyyy) return d.slice(0, 5);
+  const target = new Date(yyyy, mm - 1, dd).getTime();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const days = Math.round((today - target) / 86_400_000);
+  if (days === 0) return 'hoje';
+  if (days === 1) return 'ontem';
+  return d.slice(0, 5);
+}
 
-  function shortDate(d: string): string {
-    return d.slice(0, 5);
-  }
+function splitTipo(tipo: string): [string, string] {
+  const colonIdx = tipo.indexOf(':');
+  if (colonIdx === -1) return [tipo, ''];
+  return [tipo.slice(0, colonIdx).trim(), tipo.slice(colonIdx + 1).trim()];
+}
 
-  function splitTipo(tipo: string): [string, string] {
-    const colonIdx = tipo.indexOf(':');
-    if (colonIdx === -1) return [tipo, ''];
-    return [tipo.slice(0, colonIdx).trim(), tipo.slice(colonIdx + 1).trim()];
-  }
+function NovidadesCard({ items }: { items: AtualizacaoItem[] }) {
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? items : items.slice(0, NOVIDADES_VISIVEIS);
 
   return (
-    <div class="sc-feed-card">
-      <button
-        class="sc-feed-header"
-        type="button"
-        onClick={() => setExpanded(e => !e)}
-        aria-expanded={expanded}
-      >
-        <span class="sc-feed-title">Atualizações recentes</span>
-        <span class="sc-feed-header-right">
-          <span class="sc-feed-count">{items.length} {items.length === 1 ? 'item' : 'itens'}</span>
-          <span class={`sc-feed-chevron${expanded ? ' sc-feed-chevron-open' : ''}`}>▼</span>
-        </span>
-      </button>
+    <section class="sc-panel" aria-labelledby="sc-novidades-title">
+      <header class="sc-panel-header">
+        <h3 class="sc-panel-title" id="sc-novidades-title">Novidades nas turmas</h3>
+        {items.length > 0 && <span class="sc-panel-count">{items.length}</span>}
+      </header>
 
-      {expanded && (
+      {items.length === 0 ? (
+        <p class="sc-panel-empty">
+          Nenhuma novidade publicada pelos professores nos últimos dias.
+        </p>
+      ) : (
         <ul class="sc-feed-list">
-          {items.map((item, i) => {
+          {visible.map((item, i) => {
             const [tipoLabel, tipoDesc] = splitTipo(item.tipo);
             return (
-              <li class="sc-feed-item" key={i}>
-                <span class="sc-feed-date">{shortDate(item.data)}</span>
-                <div class="sc-feed-content">
-                  <button
-                    class="sc-feed-turma"
-                    type="button"
-                    onClick={() => navigateToAtualizacao(item.idTurma)}
-                    title={`Abrir turma virtual de ${item.nomeTurma}`}
-                  >
-                    {item.nomeTurma}
-                  </button>
-                  <span class="sc-feed-tipo">
-                    {tipoLabel && <span class="sc-feed-tipo-label">{tipoLabel}</span>}
-                    {tipoDesc && <span class="sc-feed-tipo-desc">{tipoDesc ? `: ${tipoDesc}` : ''}</span>}
+              <li key={i}>
+                <button
+                  class="sc-feed-item"
+                  type="button"
+                  onClick={() => navigateToAtualizacao(item.idTurma)}
+                  title={`Abrir turma virtual de ${item.nomeTurma}`}
+                >
+                  <span class="sc-feed-date">{relativeDate(item.data)}</span>
+                  <span class="sc-feed-content">
+                    <span class="sc-feed-turma">{item.nomeTurma}</span>
+                    <span class="sc-feed-tipo">
+                      {tipoLabel && <span class="sc-feed-tipo-label">{tipoLabel}</span>}
+                      {tipoDesc && <span class="sc-feed-tipo-desc">{`: ${tipoDesc}`}</span>}
+                    </span>
                   </span>
-                </div>
+                </button>
               </li>
             );
           })}
         </ul>
       )}
-    </div>
+
+      {items.length > NOVIDADES_VISIVEIS && (
+        <button
+          class="sc-link-btn"
+          type="button"
+          onClick={() => setShowAll(s => !s)}
+          aria-expanded={showAll}
+        >
+          {showAll ? 'Mostrar menos' : `Ver todas as ${items.length} novidades`}
+        </button>
+      )}
+    </section>
+  );
+}
+
+// ── Aulas do dia (derivadas do código de horário — sem fetch) ─────────────────
+
+const DIA_NOME_LONGO: Record<number, string> = {
+  2: 'segunda-feira',
+  3: 'terça-feira',
+  4: 'quarta-feira',
+  5: 'quinta-feira',
+  6: 'sexta-feira',
+  7: 'sábado',
+};
+
+const TURNO_ORDEM: Record<string, number> = { M: 0, T: 1, N: 2 };
+
+interface AulaDoDia {
+  turma: TurmaInfo;
+  turno: 'M' | 'T' | 'N';
+  turnoNome: string;
+  aulas: number[];
+}
+
+/** Dia do SIGAA (2=Seg … 7=Sáb) a partir de Date.getDay() (0=Dom … 6=Sáb). */
+function sigaaDia(date: Date): number {
+  return date.getDay() + 1;
+}
+
+function aulasDoDia(turmas: TurmaInfo[], dia: number): AulaDoDia[] {
+  const aulas: AulaDoDia[] = [];
+  for (const turma of turmas) {
+    for (const b of turma.horarioDecodificado?.blocos ?? []) {
+      if (b.dia === dia) {
+        aulas.push({ turma, turno: b.turno, turnoNome: b.turnoNome, aulas: b.aulas });
+      }
+    }
+  }
+  return aulas.sort(
+    (a, b) =>
+      TURNO_ORDEM[a.turno] - TURNO_ORDEM[b.turno] || (a.aulas[0] ?? 0) - (b.aulas[0] ?? 0),
+  );
+}
+
+/**
+ * Hoje, se houver aula; senão o próximo dia com aula (fim de semana,
+ * feriado de horário vazio). Retorna null se nenhuma turma tem horário.
+ */
+function proximoDiaComAula(turmas: TurmaInfo[]): { dia: number; hoje: boolean; aulas: AulaDoDia[] } | null {
+  const hoje = sigaaDia(new Date());
+  for (let offset = 0; offset < 7; offset++) {
+    const dia = ((hoje - 1 + offset) % 7) + 1;
+    const aulas = aulasDoDia(turmas, dia);
+    if (aulas.length > 0) return { dia, hoje: offset === 0, aulas };
+  }
+  return null;
+}
+
+function formatAulas(aulas: number[]): string {
+  if (aulas.length === 0) return '';
+  const label = aulas.length === 1 ? 'aula' : 'aulas';
+  return `${label} ${aulas.length > 1 ? `${aulas[0]}–${aulas[aulas.length - 1]}` : aulas[0]}`;
+}
+
+function AulasCard({ turmas }: { turmas: TurmaInfo[] }) {
+  const proximo = proximoDiaComAula(turmas);
+
+  const title = !proximo
+    ? 'Aulas'
+    : proximo.hoje
+      ? 'Aulas de hoje'
+      : `Próximas aulas — ${DIA_NOME_LONGO[proximo.dia] ?? ''}`;
+
+  return (
+    <section class="sc-panel" aria-labelledby="sc-aulas-title">
+      <header class="sc-panel-header">
+        <h3 class="sc-panel-title" id="sc-aulas-title">{title}</h3>
+      </header>
+
+      {!proximo ? (
+        <p class="sc-panel-empty">
+          Seu horário ainda não foi publicado no SIGAA.
+        </p>
+      ) : (
+        <ol class="sc-aulas-list">
+          {proximo.aulas.map((a, i) => (
+            <li key={i}>
+              <button
+                class="sc-aula"
+                type="button"
+                onClick={() => navigateToTurmaVirtual(a.turma)}
+                disabled={!a.turma.frontEndIdTurma}
+                title={`Abrir turma virtual de ${a.turma.nome}`}
+              >
+                <span class="sc-aula-slot">
+                  <span class="sc-aula-turno">{a.turnoNome}</span>
+                  <span class="sc-aula-num">{formatAulas(a.aulas)}</span>
+                </span>
+                <span class="sc-aula-nome">{a.turma.nome}</span>
+                {a.turma.local && <span class="sc-aula-local">{a.turma.local}</span>}
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+// ── Atalhos para telas do SIGAA (navegação delegada ao menu nativo) ───────────
+
+interface AtalhoSpec {
+  label: string;
+  descricao: string;
+  /** Textos possíveis do item no menu nativo (prefixo), em ordem de preferência */
+  menu: string[];
+}
+
+const ATALHOS: AtalhoSpec[] = [
+  { label: 'Boletim', descricao: 'Notas e faltas de todas as matérias', menu: ['Visualizar Boletim', 'Emitir Boletim'] },
+  { label: 'Comunicados', descricao: 'Avisos importantes da escola', menu: ['Comunicados Importantes'] },
+  { label: 'Calendário', descricao: 'Datas de provas, férias e feriados', menu: ['Calendário Acadêmico'] },
+  { label: 'Declaração de vínculo', descricao: 'Comprovante de que você estuda aqui', menu: ['Emitir Declaração de Vínculo'] },
+  { label: 'Saldo do RU', descricao: 'Créditos do cartão do restaurante', menu: ['Saldo do Cartão do Restaurante'] },
+  { label: 'Grade do curso', descricao: 'Matérias de todas as séries', menu: ['Consultar Estrutura Curricular'] },
+];
+
+function findMenuItem(prefixes: string[]): Element | null {
+  const rows = resolveAll(SEL.menu_item_linha);
+  for (const prefix of prefixes) {
+    const row = rows.find(r => (r.textContent ?? '').trim().startsWith(prefix));
+    if (row) return row;
+  }
+  return null;
+}
+
+/**
+ * Aciona o item do JSCookMenu como se o usuário tivesse clicado nele:
+ * o próprio SIGAA navega (cmItemMouseUp). Nenhuma requisição é forjada.
+ */
+function openMenuItem(row: Element): void {
+  row.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  row.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+}
+
+function AtalhosCard() {
+  const atalhos = ATALHOS.map(spec => {
+    const row = findMenuItem(spec.menu);
+    // Contador entre parênteses no menu nativo, ex: "Comunicados Importantes (26)"
+    const count = row?.textContent?.match(/\((\d+)\)\s*$/)?.[1] ?? null;
+    return { spec, row, count };
+  }).filter(a => a.row !== null);
+
+  if (atalhos.length === 0) return null;
+
+  return (
+    <section class="sc-atalhos" aria-label="Atalhos do SIGAA">
+      {atalhos.map(({ spec, row, count }) => (
+        <button
+          class="sc-atalho"
+          type="button"
+          key={spec.label}
+          onClick={() => row && openMenuItem(row)}
+        >
+          <span class="sc-atalho-label">
+            {spec.label}
+            {count && <span class="sc-atalho-count">{count}</span>}
+          </span>
+          <span class="sc-atalho-desc">{spec.descricao}</span>
+        </button>
+      ))}
+    </section>
   );
 }
 
@@ -146,14 +332,24 @@ function AtualizacoesCard({ items }: { items: AtualizacaoItem[] }) {
  */
 function navigateToTurmaVirtual(turma: TurmaInfo): void {
   if (!turma.frontEndIdTurma) return;
-  const forms = document.querySelectorAll('form[id^="form_acessarTurmaVirtual"]');
-  for (const form of forms) {
-    const link = form.querySelector('a[onclick]') as HTMLAnchorElement | null;
-    if (link?.getAttribute('onclick')?.includes(turma.frontEndIdTurma)) {
-      link.click();
+  for (const link of resolveAll(SEL.turma_virtual_links)) {
+    if (link.getAttribute('onclick')?.includes(turma.frontEndIdTurma)) {
+      (link as HTMLElement).click();
       return;
     }
   }
+}
+
+/** Normaliza nome de disciplina para casar turma ↔ atualização sem idTurma. */
+function normNome(nome: string): string {
+  return nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
+}
+
+function countNovidades(turma: TurmaInfo, items: AtualizacaoItem[]): number {
+  const nome = normNome(turma.nome);
+  return items.filter(it =>
+    (turma.idTurma && it.idTurma === turma.idTurma) || normNome(it.nomeTurma) === nome,
+  ).length;
 }
 
 // ── Componentes ───────────────────────────────────────────────────────────────
@@ -163,15 +359,18 @@ function CourseCard({
   notas,
   frequencia,
   index,
+  temAulaHoje,
+  novidades,
 }: {
   turma: TurmaInfo;
   notas: NotasTurma | undefined;
   frequencia: FrequenciaTurma | undefined;
   index: number;
+  temAulaHoje: boolean;
+  novidades: number;
 }) {
   const color = courseColor(index);
   const schedule = turma.horarioDecodificado?.resumo ?? turma.horarioCodigo ?? '';
-  const hasData = notas || frequencia;
   const [expanded, setExpanded] = useState(false);
 
   const hasBimestresDetail = notas && notas.bimestres.some(b => b.avaliacoes.length > 0);
@@ -190,6 +389,12 @@ function CourseCard({
         </button>
 
         <div class="sc-card-meta">
+          {temAulaHoje && <span class="sc-badge sc-badge-hoje">Aula hoje</span>}
+          {novidades > 0 && (
+            <span class="sc-badge sc-badge-novidade">
+              {novidades} {novidades === 1 ? 'novidade' : 'novidades'}
+            </span>
+          )}
           {schedule && (
             <span class="sc-card-schedule" title="Horário">
               {schedule}
@@ -287,23 +492,30 @@ function CourseCard({
           </>
         )}
 
-        {!hasData && (
-          <p class="sc-card-no-data">Dados não coletados ainda</p>
+        {turma.frontEndIdTurma && (
+          <button
+            class="sc-card-open"
+            type="button"
+            onClick={() => navigateToTurmaVirtual(turma)}
+            aria-label={`Abrir turma virtual de ${turma.nome}`}
+          >
+            Abrir turma virtual <span aria-hidden="true">→</span>
+          </button>
         )}
       </div>
     </div>
   );
 }
 
-// ── Toast de sugestão de atualização ──────────────────────────────────────────
+// ── Convite à primeira coleta ─────────────────────────────────────────────────
 
 /**
- * Notificação flutuante sugerindo a coleta quando não há dados ainda.
- * NÃO dispara fetch sozinha — só chama onUpdate() no clique explícito do
- * usuário (princípio 5 do CLAUDE.md: toda requisição precisa de ação
- * explícita). O "automático" aqui é só a sugestão aparecer, não a coleta.
+ * Convite inline (não flutuante — o antigo toast fixo cobria os botões
+ * "Módulos"/"Alterar senha" do cabeçalho) sugerindo a coleta quando não há
+ * dados. NÃO dispara fetch sozinho — só chama onUpdate() no clique explícito
+ * (princípio 5 do CLAUDE.md).
  */
-function UpdatePromptToast({
+function ColetaConvite({
   onUpdate,
   onDismiss,
 }: {
@@ -311,23 +523,54 @@ function UpdatePromptToast({
   onDismiss: () => void;
 }) {
   return (
-    <div class="sc-update-toast" role="status" aria-live="polite">
-      <div class="sc-update-toast-body">
-        <p class="sc-update-toast-title">Nenhum dado coletado ainda</p>
-        <p class="sc-update-toast-sub">
-          Quer coletar notas e frequência de todas as turmas agora?
+    <section class="sc-convite" aria-labelledby="sc-convite-title">
+      <div class="sc-convite-body">
+        <h3 class="sc-convite-title" id="sc-convite-title">
+          Veja notas e faltas de todas as matérias aqui
+        </h3>
+        <p class="sc-convite-sub">
+          A extensão abre cada turma por você e junta tudo nesta tela. Leva
+          cerca de 1 minuto e os dados ficam só neste computador.
         </p>
       </div>
-      <div class="sc-update-toast-actions">
-        <button class="sc-btn sc-btn-primary sc-btn-sm" type="button" onClick={onUpdate}>
-          Atualizar agora
+      <div class="sc-convite-actions">
+        <button class="sc-btn sc-btn-primary" type="button" onClick={onUpdate}>
+          Buscar notas e faltas
         </button>
-        <button class="sc-btn sc-btn-cancel sc-btn-sm" type="button" onClick={onDismiss}>
+        <button class="sc-btn sc-btn-ghost" type="button" onClick={onDismiss}>
           Agora não
         </button>
       </div>
-    </div>
+    </section>
   );
+}
+
+/** "Agora não" vale até fechar o navegador — preferência de UI, não dado acadêmico. */
+const CONVITE_DISMISS_KEY = 'betterui_convite_dispensado';
+
+function conviteDispensado(): boolean {
+  try {
+    return sessionStorage.getItem(CONVITE_DISMISS_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function dispensarConvite(): void {
+  try {
+    sessionStorage.setItem(CONVITE_DISMISS_KEY, '1');
+  } catch {
+    // Sem sessionStorage: o convite só some até o próximo carregamento
+  }
+}
+
+function dataPorExtenso(date: Date): string {
+  try {
+    const s = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  } catch {
+    return '';
+  }
 }
 
 function ProgressBar({ info }: { info: ProgressInfo; onCancel: () => void }) {
@@ -414,8 +657,8 @@ function Dashboard({
           versaoSchema: SCHEMA_VERSION_UI,
         });
         // Sem cache válido: sugere a coleta, mas não a dispara sozinha —
-        // o clique em "Atualizar agora" continua sendo obrigatório.
-        setShowUpdatePrompt(true);
+        // o clique no botão continua sendo obrigatório.
+        setShowUpdatePrompt(!conviteDispensado());
       }
     });
   }, []);
@@ -482,40 +725,43 @@ function Dashboard({
     handleCollect();
   }, [handleCollect]);
 
-  const firstName = data?.nomeAluno?.split(' ')[0] ?? nomeAlunoInicial?.split(' ')[0] ?? '';
+  const firstNameRaw = data?.nomeAluno?.split(' ')[0] ?? nomeAlunoInicial?.split(' ')[0] ?? '';
+  // SIGAA exibe o nome em caixa alta ("MIGUEL") — saudação fica mais humana em "Miguel"
+  const firstName = firstNameRaw
+    ? firstNameRaw.charAt(0).toUpperCase() + firstNameRaw.slice(1).toLowerCase()
+    : '';
+  const turmas = data?.turmas ?? turmasIniciais;
+  const hasCollected = !!data && data.coletadoEm > 0;
+  const hoje = sigaaDia(new Date());
 
   return (
     <div class="sc-dashboard">
-      {showUpdatePrompt && !loading && (
-        <UpdatePromptToast
-          onUpdate={handlePromptUpdate}
-          onDismiss={() => setShowUpdatePrompt(false)}
-        />
-      )}
-
       {/* Cabeçalho */}
       <div class="sc-dashboard-header">
-        <div class="sc-greeting-row">
+        <div class="sc-greeting-block">
           <h2 class="sc-greeting">
             Olá{firstName ? `, ${firstName}` : ''}!
           </h2>
-          {data && data.coletadoEm > 0 && (
-            <span class="sc-cache-age" title="Última atualização dos dados">
-              {cacheAge(data.coletadoEm)}
-            </span>
-          )}
+          <p class="sc-today">{dataPorExtenso(new Date())}</p>
         </div>
 
         <div class="sc-header-actions">
-          <button
-            class="sc-btn sc-btn-primary"
-            type="button"
-            onClick={handleCollect}
-            disabled={loading}
-            aria-busy={loading}
-          >
-            {loading ? 'Coletando...' : 'Atualizar dados'}
-          </button>
+          {hasCollected && !loading && (
+            <span class="sc-cache-age" title="Última vez que as notas e faltas foram buscadas no SIGAA">
+              Notas de {cacheAge(data!.coletadoEm)}
+            </span>
+          )}
+          {(hasCollected || loading || !showUpdatePrompt) && (
+            <button
+              class={`sc-btn ${hasCollected ? 'sc-btn-secondary' : 'sc-btn-primary'}`}
+              type="button"
+              onClick={handleCollect}
+              disabled={loading}
+              aria-busy={loading}
+            >
+              {loading ? 'Buscando…' : hasCollected ? 'Atualizar notas e faltas' : 'Buscar notas e faltas'}
+            </button>
+          )}
           {loading && (
             <button class="sc-btn sc-btn-cancel" type="button" onClick={handleCancel}>
               Cancelar
@@ -540,32 +786,51 @@ function Dashboard({
         </div>
       )}
 
-      {/* Feed de atualizações recentes */}
-      <AtualizacoesCard items={atualizacoes} />
+      {showUpdatePrompt && !loading && !hasCollected && (
+        <ColetaConvite
+          onUpdate={handlePromptUpdate}
+          onDismiss={() => {
+            dispensarConvite();
+            setShowUpdatePrompt(false);
+          }}
+        />
+      )}
+
+      {/* Hoje: aulas + novidades */}
+      <div class="sc-overview">
+        <AulasCard turmas={turmas} />
+        <NovidadesCard items={atualizacoes} />
+      </div>
+
+      <AtalhosCard />
 
       {/* Grade de cards */}
-      {data && data.turmas.length > 0 ? (
-        <div class="sc-course-grid" role="list">
-          {data.turmas.map((turma, i) => (
-            <div role="listitem" key={turma.idTurma ?? turma.formId}>
-              <CourseCard
-                turma={turma}
-                notas={turma.idTurma ? data.notas[turma.idTurma] : undefined}
-                frequencia={turma.idTurma ? data.frequencia[turma.idTurma] : undefined}
-                index={i}
-              />
-            </div>
-          ))}
-        </div>
+      {turmas.length > 0 ? (
+        <section aria-labelledby="sc-turmas-title">
+          <h3 class="sc-section-title" id="sc-turmas-title">
+            Minhas turmas <span class="sc-section-count">{turmas.length}</span>
+          </h3>
+          <div class="sc-course-grid" role="list">
+            {turmas.map((turma, i) => (
+              <div role="listitem" key={turma.idTurma ?? turma.formId}>
+                <CourseCard
+                  turma={turma}
+                  notas={turma.idTurma ? data?.notas[turma.idTurma] : undefined}
+                  frequencia={turma.idTurma ? data?.frequencia[turma.idTurma] : undefined}
+                  index={i}
+                  temAulaHoje={turma.horarioDecodificado?.blocos.some(b => b.dia === hoje) ?? false}
+                  novidades={countNovidades(turma, atualizacoes)}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
       ) : !loading ? (
         <div class="sc-empty-state">
-          <p class="sc-empty-title">Nenhum dado coletado ainda.</p>
+          <p class="sc-empty-title">Nenhuma turma encontrada neste semestre.</p>
           <p class="sc-empty-sub">
-            Clique em <strong>Atualizar dados</strong> para coletar notas e frequência de
-            todas as turmas do semestre.
-          </p>
-          <p class="sc-empty-info">
-            A coleta pode demorar alguns minutos — o SIGAA processa uma disciplina por vez.
+            Se você acabou de se matricular, as turmas aparecem aqui assim que a
+            secretaria confirmar.
           </p>
         </div>
       ) : null}
@@ -603,24 +868,26 @@ const DASHBOARD_CSS = `
 
 /* ── Cabeçalho ── */
 .sc-dashboard-header {
-  padding: 20px 0 16px;
-  border-bottom: 1px solid var(--sc-color-border-subtle);
-  margin-bottom: 20px;
-}
-
-.sc-greeting-row {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
   flex-wrap: wrap;
+  padding: 20px 0 20px;
 }
 
 .sc-greeting {
   margin: 0;
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
   color: var(--sc-color-text);
+}
+
+.sc-today {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--sc-color-text-muted);
 }
 
 .sc-cache-age {
@@ -630,8 +897,242 @@ const DASHBOARD_CSS = `
 
 .sc-header-actions {
   display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Convite à primeira coleta ── */
+.sc-convite {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: var(--sc-color-primary-bg);
+  border: 1px solid var(--sc-color-primary);
+  border-radius: 12px;
+}
+
+.sc-convite-body {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.sc-convite-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sc-color-text);
+}
+
+.sc-convite-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--sc-color-text-secondary);
+}
+
+.sc-convite-actions {
+  display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* ── Visão geral: aulas + novidades ── */
+.sc-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sc-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--sc-color-bg);
+  border: 1px solid var(--sc-color-border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--sc-shadow-sm);
+  overflow: hidden;
+}
+
+.sc-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 10px;
+}
+
+.sc-panel-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sc-color-text);
+}
+
+.sc-panel-count,
+.sc-section-count {
+  display: inline-block;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--sc-color-bg-muted);
+  color: var(--sc-color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-panel-empty {
+  margin: 0;
+  padding: 4px 16px 16px;
+  font-size: 13px;
+  color: var(--sc-color-text-muted);
+}
+
+.sc-aulas-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 8px;
+}
+
+.sc-aula {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 8px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  text-align: left;
+  color: var(--sc-color-text);
+  cursor: pointer;
+}
+
+.sc-aula:hover:not(:disabled) {
+  background: var(--sc-color-bg-muted);
+}
+
+.sc-aula:disabled {
+  cursor: default;
+}
+
+.sc-aula:focus-visible {
+  outline: 2px solid var(--sc-color-primary);
+  outline-offset: -2px;
+}
+
+.sc-aula-slot {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.sc-aula-turno {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sc-color-primary);
+}
+
+.sc-aula-num {
+  font-size: 12px;
+  color: var(--sc-color-text-muted);
+}
+
+.sc-aula-nome {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-aula-local {
+  font-size: 12px;
+  color: var(--sc-color-text-secondary);
+  background: var(--sc-color-bg-muted);
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* ── Atalhos ── */
+.sc-atalhos {
+  display: grid;
+  /* 6 atalhos = 2 linhas de 3; auto-fill deixava 5 + 1 órfão */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.sc-atalho {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--sc-color-bg);
+  border: 1px solid var(--sc-color-border-subtle);
+  border-radius: 10px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.sc-atalho:hover {
+  border-color: var(--sc-color-primary);
+  background: var(--sc-color-primary-bg);
+}
+
+.sc-atalho:focus-visible {
+  outline: 2px solid var(--sc-color-primary);
+  outline-offset: 2px;
+}
+
+.sc-atalho-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sc-color-text);
+}
+
+.sc-atalho-count {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--sc-color-primary);
+  color: var(--sc-color-text-on-primary);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.sc-atalho-desc {
+  font-size: 12px;
+  color: var(--sc-color-text-muted);
+  line-height: 1.35;
+}
+
+/* ── Seção "Minhas turmas" ── */
+.sc-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--sc-color-text);
 }
 
 /* ── Botões ── */
@@ -681,53 +1182,49 @@ const DASHBOARD_CSS = `
   background: var(--sc-color-border-subtle);
 }
 
-.sc-btn-sm {
-  padding: 4px 10px;
-  font-size: 12px;
-}
-
-/* ── Toast de sugestão de atualização ── */
-@keyframes sc-toast-bounce-in {
-  0% { transform: translateY(-28px) scale(0.92); opacity: 0; }
-  60% { transform: translateY(4px) scale(1.02); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
-}
-
-.sc-update-toast {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 2147483000;
-  width: 300px;
-  max-width: calc(100vw - 32px);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px;
+.sc-btn-secondary {
   background: var(--sc-color-bg);
-  border: 1px solid var(--sc-color-border);
-  border-left: 4px solid var(--sc-color-primary);
-  border-radius: 10px;
-  box-shadow: var(--sc-shadow-md);
-  animation: sc-toast-bounce-in 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.sc-update-toast-title {
-  margin: 0 0 2px;
-  font-size: 13px;
-  font-weight: 600;
+  border-color: var(--sc-color-border);
   color: var(--sc-color-text);
 }
 
-.sc-update-toast-sub {
-  margin: 0;
-  font-size: 12px;
+.sc-btn-secondary:hover:not(:disabled) {
+  border-color: var(--sc-color-primary);
+  color: var(--sc-color-primary);
+}
+
+.sc-btn-ghost {
+  background: transparent;
+  border-color: transparent;
   color: var(--sc-color-text-secondary);
 }
 
-.sc-update-toast-actions {
-  display: flex;
-  gap: 8px;
+.sc-btn-ghost:hover {
+  background: var(--sc-color-bg-muted);
+}
+
+.sc-link-btn {
+  align-self: flex-start;
+  margin: 0 16px 14px;
+  padding: 2px 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sc-color-primary);
+  cursor: pointer;
+}
+
+.sc-link-btn:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sc-link-btn:focus-visible {
+  outline: 2px solid var(--sc-color-primary);
+  outline-offset: 2px;
+  border-radius: 3px;
 }
 
 /* ── Progresso ── */
@@ -1006,11 +1503,46 @@ const DASHBOARD_CSS = `
   font-weight: 600;
 }
 
-.sc-card-no-data {
-  margin: 0;
+.sc-badge {
+  display: inline-block;
   font-size: 11px;
-  color: var(--sc-color-text-faint);
-  font-style: italic;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.sc-badge-hoje {
+  background: var(--sc-color-primary-bg);
+  color: var(--sc-color-primary);
+}
+
+.sc-badge-novidade {
+  background: var(--sc-color-accent-feed-bg);
+  color: var(--sc-color-accent-feed);
+}
+
+.sc-card-open {
+  margin-top: auto;
+  align-self: flex-start;
+  padding: 4px 0 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sc-color-primary);
+  cursor: pointer;
+}
+
+.sc-card-open:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sc-card-open:focus-visible {
+  outline: 2px solid var(--sc-color-primary);
+  outline-offset: 2px;
+  border-radius: 3px;
 }
 
 /* ── Expand button ── */
@@ -1102,106 +1634,44 @@ const DASHBOARD_CSS = `
   white-space: nowrap;
 }
 
-/* ── Feed de atualizações ── */
-.sc-feed-card {
-  background: var(--sc-color-bg);
-  border: 1px solid var(--sc-color-border-subtle);
-  border-left: 4px solid var(--sc-color-accent-feed);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: var(--sc-shadow-sm);
-  margin-bottom: 20px;
-}
-
-.sc-feed-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px 10px;
-  border-bottom: 1px solid var(--sc-color-bg-muted);
-  width: 100%;
-  background: none;
-  border-top: none;
-  border-left: none;
-  border-right: none;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition: background 150ms ease;
-}
-
-.sc-feed-header:hover {
-  background: var(--sc-color-accent-feed-bg);
-}
-
-.sc-feed-header:focus-visible {
-  outline: 2px solid var(--sc-color-accent-feed);
-  outline-offset: -2px;
-  border-radius: 8px 8px 0 0;
-}
-
-.sc-feed-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--sc-color-text);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.sc-feed-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sc-feed-count {
-  font-size: 11px;
-  color: var(--sc-color-text-faint);
-}
-
-.sc-feed-chevron {
-  font-size: 9px;
-  color: var(--sc-color-text-faint);
-  display: inline-block;
-  transition: transform 200ms ease;
-}
-
-.sc-feed-chevron-open {
-  transform: rotate(180deg);
-}
-
+/* ── Feed de novidades ── */
 .sc-feed-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 8px 8px;
 }
 
 .sc-feed-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--sc-color-bg-subtle);
-  transition: background 150ms ease;
-}
-
-.sc-feed-item:last-child {
-  border-bottom: none;
+  width: 100%;
+  padding: 9px 8px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .sc-feed-item:hover {
-  background: var(--sc-color-accent-feed-bg);
+  background: var(--sc-color-bg-muted);
+}
+
+.sc-feed-item:focus-visible {
+  outline: 2px solid var(--sc-color-primary);
+  outline-offset: -2px;
 }
 
 .sc-feed-date {
   flex-shrink: 0;
-  font-size: 11px;
+  min-width: 40px;
+  padding-top: 1px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--sc-color-accent-feed);
   font-variant-numeric: tabular-nums;
-  font-family: inherit;
-  padding-top: 1px;
-  min-width: 36px;
 }
 
 .sc-feed-content {
@@ -1212,39 +1682,21 @@ const DASHBOARD_CSS = `
 }
 
 .sc-feed-turma {
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--sc-color-text);
-  text-align: left;
-  cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.sc-feed-turma:hover {
-  color: var(--sc-color-primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.sc-feed-turma:focus-visible {
-  outline: 2px solid var(--sc-color-primary);
-  outline-offset: 2px;
-  border-radius: 3px;
 }
 
 .sc-feed-tipo {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--sc-color-text-muted);
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .sc-feed-tipo-label {
@@ -1290,28 +1742,38 @@ const DASHBOARD_CSS = `
 
 /* ── Responsividade ── */
 @media (max-width: 640px) {
-  .sc-course-grid {
+  .sc-course-grid,
+  .sc-overview {
     grid-template-columns: 1fr;
   }
 
+  .sc-atalhos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .sc-greeting {
-    font-size: 18px;
+    font-size: 20px;
+  }
+
+  .sc-aula {
+    grid-template-columns: 80px 1fr;
+  }
+
+  .sc-aula-local {
+    display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sc-btn,
   .sc-card,
+  .sc-atalho,
   .sc-progress-fill {
     transition: none;
   }
 
   .sc-card:hover {
     transform: none;
-  }
-
-  .sc-update-toast {
-    animation: none;
   }
 }
 `;

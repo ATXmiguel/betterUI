@@ -130,3 +130,52 @@ trailing call), garantindo reconcile periódico mesmo durante a rajada.
 Build + typecheck OK. Teste ao vivo não pôde ser feito nesta sessão (sem
 acesso à extensão "Claude for Chrome" pareada — ver runbook de memória);
 fica pendente de confirmação visual do usuário na próxima sessão.
+
+---
+
+## 2026-10-30 — Tela inicial redesenhada + rodada de testes ponta a ponta
+
+Testado ao vivo (perfil de teste do chrome-devtools-mcp, extensão unpacked
+de `dist/`) em: portal, Boletim, turma virtual, Notas, Frequência,
+Arquivos, tema claro/escuro, 375px e liga/desliga.
+
+**Tela inicial (Dashboard).** Era um acordeão fechado de "atualizações" +
+17 cards dizendo "Dados não coletados ainda" + um toast fixo que cobria
+"Módulos/Alterar senha" e voltava a cada carregamento. Agora:
+- "Aulas de hoje" (ou próximo dia com aula), derivado do código de horário
+  já presente no DOM — zero fetch.
+- "Novidades nas turmas" aberto por padrão (4 itens + "ver todas").
+- Atalhos (Boletim, Comunicados, Calendário, Declaração de vínculo, Saldo
+  do RU, Grade do curso) que acionam o item do JSCookMenu nativo via
+  mousedown/mouseup — o SIGAA navega sozinho, nenhum POST forjado.
+  Itens não encontrados no menu simplesmente não aparecem (fail-open).
+- Cards com "Aula hoje", "N novidades" e "Abrir turma virtual →".
+- Convite inline à coleta (não mais toast fixo); "Agora não" vale até
+  fechar o navegador (`sessionStorage`, preferência de UI, não dado
+  acadêmico). Coleta continua só por clique (princípio 5).
+
+**Correções encontradas nos testes.**
+- Toggle betterUI nunca ficou fixo: `all: initial` vinha depois de
+  `position: fixed` no cssText e zerava a posição.
+- Badge "!" só em `mismatch` — `unknown` é normal em telas de relatório
+  (sem `#rodape`).
+- Relatórios (Boletim/Notas): texto base preto nativo, título h3 invisível,
+  largura fixa de 900px cortando colunas, faixa de título e rodapé brancos.
+  `td.nota.red` neutralizado — o CEFET marca todas as notas como `.red`.
+- Frequência: SIGAA pinta "Não Registrada" de vermelho e deixa a falta
+  real ("2 Falta(s)") em texto puro. Agora falta = vermelho, não
+  registrada = cinza itálico.
+- `#painel-erros` (aviso de manutenção) virou callout no tema.
+- Fórum do curso mostrava CPF de outros alunos; o nome já estava no
+  `title` do `<acronym>` — exibimos o nome (revertido ao desligar).
+- SIGAA não declara `<meta name="viewport">`: no celular a página era
+  diagramada a 980px e nenhuma media query valia. O reskin injeta a meta
+  (só se não houver uma) e remove ao desligar. Corrigidos os elementos
+  que forçavam largura (cabeçalho, barra de menu, submenus, painel YUI
+  oculto, coluna lateral flutuando sobre a saudação).
+- Contraste AA: `text-on-primary` escuro no tema escuro (branco sobre
+  #4dabf7 dava 2.5:1), `text-muted` claro #6c757d, `text-faint` escuro
+  #7d858d.
+
+Pendente: turma virtual no celular (layout YUI em px fixos) não foi
+tratada; tela de login não foi revalidada ao vivo (exigiria deslogar).
