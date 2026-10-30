@@ -2043,3 +2043,289 @@ body.sc-reskin-active #conteudo textarea:focus-visible {
     font-size: var(--sc-font-size-sm);
   }
 }
+
+/* ══════════════════════════════════════════════════════════
+   12. Correções da rodada de testes de 2026-10-30
+   ══════════════════════════════════════════════════════════ */
+
+/* Caixa de mensagens do sistema (#painel-erros) — aviso de manutenção
+   etc. Fundo nativo rgb(249,251,253) sem !important: ficava um bloco
+   branco estourado no tema escuro, em todas as telas. Vira um callout
+   com a cor semântica de aviso, nos dois temas. */
+body.sc-reskin-active #painel-erros {
+  background: var(--sc-color-warning-bg) !important;
+  border: 1px solid var(--sc-color-warning) !important;
+  border-radius: var(--sc-radius-md) !important;
+  color: var(--sc-color-text) !important;
+  box-shadow: none !important;
+  margin-bottom: var(--sc-space-4) !important;
+}
+
+/* background-color, não o shorthand: o ícone de alerta da lista é
+   background-image do próprio ul.warning */
+body.sc-reskin-active #painel-erros ul,
+body.sc-reskin-active #painel-erros li {
+  background-color: transparent !important;
+  color: var(--sc-color-text) !important;
+}
+
+body.sc-reskin-active #painel-erros a {
+  color: var(--sc-color-primary) !important;
+}
+
+/* "(x) fechar mensagens" saía cortado na borda direita */
+body.sc-reskin-active #painel-erros * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Links nativos sem regra própria herdavam o azul escuro do SIGAA
+   (rgb(0,51,149)) — ilegível no tema escuro. Ex: "Baixar todos os
+   arquivos" (Materiais), "Identificação Única" (login). */
+body.sc-reskin-active .infoAltRem a,
+body.sc-reskin-active .sc-login-hint a,
+body.sc-reskin-active #conteudo .descricaoOperacao a {
+  color: var(--sc-color-primary) !important;
+}
+
+/* ── Relatórios (Boletim, Notas da turma) ── */
+
+/* Título da disciplina (h3) e legenda "Alunos Matriculados" vinham em
+   preto puro do CSS do relatório — invisíveis no tema escuro. */
+body.sc-reskin-active #relatorio-paisagem-container h2,
+body.sc-reskin-active #relatorio-paisagem-container h3,
+body.sc-reskin-active #relatorio-paisagem-container h4,
+body.sc-reskin-active #relatorio-paisagem-container caption {
+  color: var(--sc-color-text) !important;
+  font-family: var(--sc-font-family) !important;
+}
+
+body.sc-reskin-active #relatorio-paisagem-container h3 {
+  font-size: var(--sc-font-size-md) !important;
+  line-height: 1.4 !important;
+  margin: var(--sc-space-4) 0 var(--sc-space-2) !important;
+}
+
+body.sc-reskin-active #relatorio-paisagem-container caption {
+  padding: var(--sc-space-2) 0 !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+  text-align: left !important;
+}
+
+body.sc-reskin-active #relatorio-paisagem-container hr {
+  border: none !important;
+  border-top: 1px solid var(--sc-color-border-subtle) !important;
+}
+
+/* Tabela de notas (1091px) estourava o container de 960px */
+body.sc-reskin-active #relatorio-paisagem-container {
+  max-width: min(1200px, 100%) !important;
+  box-sizing: border-box !important;
+}
+
+body.sc-reskin-active #relatorio .notas {
+  overflow-x: auto !important;
+}
+
+/* Cabeçalho timbrado (logos CEFET/DTI) — mantém o branco do "papel"
+   porque os logos são escuros, mas integra ao card com cantos. */
+body.sc-reskin-active #relatorio-cabecalho {
+  border-radius: var(--sc-radius-md) !important;
+  overflow: hidden !important;
+}
+
+/* Rodapé do relatório (Voltar / Imprimir) — barra branca nativa */
+body.sc-reskin-active #relatorio-rodape,
+body.sc-reskin-active #relatorio-rodape table,
+body.sc-reskin-active #relatorio-rodape td {
+  background: var(--sc-color-bg-subtle) !important;
+  color: var(--sc-color-text-secondary) !important;
+  border-color: var(--sc-color-border-subtle) !important;
+}
+
+body.sc-reskin-active #relatorio-rodape {
+  border-radius: var(--sc-radius-md) !important;
+}
+
+/* td.nota.red: o boletim do CEFET marca TODAS as notas com .red (até
+   27/30), então o vermelho não significa "abaixo da média" — só alarmava
+   o aluno à toa. Neutralizado; a nota em si continua em destaque. */
+body.sc-reskin-active #relatorio-paisagem-container td.nota.red {
+  color: var(--sc-color-text) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+}
+
+/* ── Frequência: situação de cada aula ── */
+
+/* SIGAA pinta "Não Registrada" de vermelho (span color:red) e deixa a
+   falta real ("2 Falta(s)") em texto puro — parecia que o aluno tinha
+   faltado onde não faltou, e a falta de verdade passava batida. JS
+   (tagFrequencia) marca cada célula com a situação real. */
+body.sc-reskin-active #conteudo table.listing tr > td.sc-freq-nr,
+body.sc-reskin-active #conteudo table.listing tr > td.sc-freq-nr span {
+  color: var(--sc-color-text-muted) !important;
+  font-style: italic;
+}
+
+/* #conteudo + tr > td de propósito: tem que vencer a regra de zebra
+   "#conteudo tr.odd > td", que também usa !important. */
+body.sc-reskin-active #conteudo table.listing tr > td.sc-freq-falta {
+  color: var(--sc-color-danger) !important;
+  background: var(--sc-color-danger-bg) !important;
+  font-weight: var(--sc-font-weight-bold) !important;
+}
+
+/* Autor do fórum do curso: CPF trocado pelo nome em maskForumCpf() */
+body.sc-reskin-active .sc-cpf-mascarado {
+  font-family: var(--sc-font-family) !important;
+  color: var(--sc-color-text-secondary) !important;
+  border: none !important;
+  text-decoration: none !important;
+}
+
+/* Títulos da coluna lateral do portal ("Dados Institucionais") — #555
+   nativo sobre o card escuro */
+body.sc-reskin-active #agenda-docente h4 {
+  color: var(--sc-color-text-secondary) !important;
+}
+
+/* Texto base dos relatórios é preto (rgb(0,0,0)) no CSS nativo: tudo que
+   não tinha regra própria (nota de rodapé "**", rótulos) sumia no escuro. */
+body.sc-reskin-active #relatorio-paisagem-container,
+body.sc-reskin-active #relatorio {
+  color: var(--sc-color-text) !important;
+}
+
+body.sc-reskin-active #relatorio {
+  overflow-x: auto !important;
+}
+
+/* Faixa "Boletim Escolar - 2026" — div.titulo com fundo branco */
+body.sc-reskin-active #relatorio .titulo {
+  background: transparent !important;
+  color: var(--sc-color-text) !important;
+  font-family: var(--sc-font-family) !important;
+}
+
+/* Cabeçalhos de seção ("Dados do Aluno") — gradiente azul em imagem */
+body.sc-reskin-active #relatorio table.listagem > caption {
+  background: var(--sc-color-bg-muted) !important;
+  background-image: none !important;
+  color: var(--sc-color-text) !important;
+  padding: var(--sc-space-2) var(--sc-space-3) !important;
+  border-radius: var(--sc-radius-md) var(--sc-radius-md) 0 0 !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* O cabeçalho timbrado continua branco (logos escuros) — o texto dele não
+   pode herdar a cor clara do tema. */
+body.sc-reskin-active #relatorio-cabecalho,
+body.sc-reskin-active #relatorio-cabecalho * {
+  color: #212529 !important;
+}
+
+/* Largura fixa nativa (900px) cortava a coluna "Situação" do boletim */
+body.sc-reskin-active #relatorio-paisagem-container,
+body.sc-reskin-active #relatorio {
+  width: auto !important;
+}
+
+/* ── Celular (só vale com o <meta viewport> que o reskin injeta) ── */
+@media (max-width: 640px) {
+  /* Cabeçalho: nome da unidade ("COORDENAÇÃO DE REGISTRO ACADÊMICO - CN
+     (11.58.01.01)") e lista de atalhos tinham largura fixa/nowrap e
+     empurravam a página para 590px. */
+  body.sc-reskin-active #info-usuario,
+  body.sc-reskin-active #info-usuario p,
+  body.sc-reskin-active #info-usuario ul {
+    width: auto !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    float: none !important;
+  }
+
+  /* Barra Ensino/Pesquisa/...: tabela de uma linha só com 545px. Quebra
+     em várias linhas — display muda em table, tbody E tr juntos (só no tr
+     o Chrome mantém uma caixa de tabela anônima, ver memória do login). */
+  body.sc-reskin-active table.ThemeOfficeMenu,
+  body.sc-reskin-active table.ThemeOfficeMenu > tbody {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  body.sc-reskin-active table.ThemeOfficeMenu > tbody > tr {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Submenus flutuantes (até 462px) */
+  body.sc-reskin-active div.ThemeOfficeSubMenu {
+    max-width: calc(100vw - 16px) !important;
+  }
+
+  body.sc-reskin-active div.ThemeOfficeSubMenu .ThemeOfficeMenuItemText {
+    white-space: normal !important;
+  }
+
+  /* Atalhos do usuário (Módulos, Abrir Chamado, Menu Discente...) — ul 400px fixo */
+  body.sc-reskin-active #menu-usuario,
+  body.sc-reskin-active #menu-usuario ul {
+    width: auto !important;
+    max-width: 100% !important;
+    float: none !important;
+  }
+
+  body.sc-reskin-active #menu-usuario ul {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px 12px !important;
+  }
+
+  /* Tabela de tópicos do fórum (515px) rola dentro do próprio card */
+  body.sc-reskin-active #forum-portal form {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Diálogo YUI "enviar mensagem" (700px), oculto até ser aberto */
+  body.sc-reskin-active #painel-mensagem-envio_c,
+  body.sc-reskin-active #painel-mensagem-envio {
+    max-width: calc(100vw - 16px) !important;
+  }
+
+  /* YUI centraliza o painel (mesmo oculto) com left calculado para a
+     largura de desktop — ficava em left:140px e alargava a página. */
+  body.sc-reskin-active .panel-container {
+    left: 8px !important;
+  }
+
+  /* Subtítulo "Sistema Integrado de Gestão..." corria por baixo do
+     contador de sessão/SAIR (.dir é absoluto no canto). O nome curto no
+     h1 já identifica o sistema. */
+  body.sc-reskin-active #info-sistema > h3 {
+    display: none !important;
+  }
+
+  /* Coluna lateral (foto, links, dados institucionais) flutuava à direita
+     por cima da saudação. No celular: menu → painel → coluna lateral. */
+  body.sc-reskin-active #portal-docente {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  body.sc-reskin-active #portal-docente > #menu-dropdown { order: 0; }
+  body.sc-reskin-active #portal-docente > #main-docente { order: 1; }
+  body.sc-reskin-active #portal-docente > #perfil-docente {
+    order: 2;
+    float: none !important;
+    width: auto !important;
+    margin: var(--sc-space-4) 0 0 !important;
+  }
+
+  /* Submenus fechados continuam no DOM (visibility:hidden) em posição
+     absoluta e ainda geram rolagem horizontal fantasma. */
+  html:has(body.sc-reskin-active),
+  body.sc-reskin-active {
+    overflow-x: hidden !important;
+  }
+}

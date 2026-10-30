@@ -19,6 +19,7 @@ import type { SigaaRoute } from '@/content/router';
 const classesAdded: Array<{ el: Element; cls: string }> = [];
 const domMoves: Array<{ node: Node; parent: Node; nextSibling: Node | null }> = [];
 let creditHost: HTMLDivElement | null = null;
+let viewportMeta: HTMLMetaElement | null = null;
 let themeToggleHost: HTMLSpanElement | null = null;
 
 function addClass(el: Element | null, cls: string): void {
@@ -569,6 +570,12 @@ export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
   renameMenuItem('Emitir Boletim', 'Visualizar Boletim');
   mountCredit();
   mountThemeToggle();
+  mountViewportMeta();
+
+  // Independentes de rota/versão: só marcam classes em elementos que, se
+  // não existirem, simplesmente não são encontrados.
+  tagFrequencia();
+  maskForumCpf();
 
   // Esconder o link "Turma Virtual" / "Portal do Discente" acima do rodapé —
   // redundante: a navegação equivalente já existe no h1 clicável e no menu.
@@ -1093,10 +1100,73 @@ function collapseEmptyRightWidgets(): void {
   }
 }
 
+/**
+ * Mapa de frequência: o SIGAA pinta "Não Registrada" (aula sem chamada
+ * lançada) de vermelho e deixa a falta de verdade ("2 Falta(s)") em texto
+ * puro — o contrário do que importa. Marca cada célula com a situação real
+ * para o CSS destacar só a falta.
+ */
+function tagFrequencia(): void {
+  try {
+    for (const cell of resolveAll(SEL.frequencia_situacao)) {
+      const text = (cell.textContent ?? '').trim();
+      if (text === 'Não Registrada') addClass(cell, 'sc-freq-nr');
+      else if (/Falta/.test(text)) addClass(cell, 'sc-freq-falta');
+    }
+  } catch {
+    // Silencioso — cores nativas permanecem
+  }
+}
+
+// Textos de CPF substituídos, para reversão
+const cpfMasks: Array<{ el: Element; before: string }> = [];
+
+/**
+ * Fórum do curso no portal: a coluna "Autor" mostra o CPF cru de outros
+ * alunos (muitos menores de idade), com o nome só no tooltip
+ * (<acronym title="NOME">CPF</acronym>). Troca o texto visível pelo nome —
+ * ou por "•••.•••.•••-NN" se não houver nome. Só exibição; restaurado em
+ * removeReskin.
+ */
+function maskForumCpf(): void {
+  try {
+    for (const el of resolveAll(SEL.forum_autor)) {
+      const before = el.textContent ?? '';
+      const digits = before.trim();
+      if (!/^\d{11}$/.test(digits)) continue;
+      const nome = el.getAttribute('title')?.trim();
+      cpfMasks.push({ el, before });
+      el.textContent = nome ? nome : `•••.•••.•••-${digits.slice(9)}`;
+      addClass(el, 'sc-cpf-mascarado');
+    }
+  } catch {
+    // Silencioso
+  }
+}
+
+/**
+ * O SIGAA não declara <meta name="viewport">: no celular a página é
+ * diagramada a 980px e encolhida, e nenhuma media query de largura do
+ * reskin chega a valer. Só injeta se a página não tiver uma própria.
+ */
+function mountViewportMeta(): void {
+  try {
+    if (viewportMeta || document.querySelector('meta[name="viewport"]')) return;
+    viewportMeta = document.createElement('meta');
+    viewportMeta.name = 'viewport';
+    viewportMeta.content = 'width=device-width, initial-scale=1';
+    document.head.appendChild(viewportMeta);
+  } catch {
+    // Silencioso — página continua no layout de desktop encolhido
+  }
+}
+
 export function removeReskin(): void {
   unwatchNavDropdown();
   unmountCredit();
   unmountThemeToggle();
+  viewportMeta?.remove();
+  viewportMeta = null;
 
   // Remover event listeners adicionados ao DOM
   for (const { el, type, fn } of domListeners) {
@@ -1109,6 +1179,12 @@ export function removeReskin(): void {
     try { el.textContent = before; } catch { /* silencioso */ }
   }
   menuTextRenames.length = 0;
+
+  // Reverter CPFs mascarados no fórum
+  for (const { el, before } of cpfMasks) {
+    try { el.textContent = before; } catch { /* silencioso */ }
+  }
+  cpfMasks.length = 0;
 
   // Desconectar observers da sidebar esquerda
   for (const obs of leftSidebarObservers) obs.disconnect();

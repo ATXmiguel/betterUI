@@ -23,13 +23,16 @@ export function mountToggle(
 
   shadowHost = document.createElement('div');
   shadowHost.id = 'betterui-toggle-host';
-  // Posição fixa — não interfere no layout do SIGAA
+  // Posição fixa — não interfere no layout do SIGAA. `all: initial` tem que
+  // vir PRIMEIRO: por ser shorthand, depois dele zerava position/bottom/right
+  // e o botão caía no fluxo do documento (aparecia no meio da página em
+  // telas curtas, como Notas da turma).
   shadowHost.style.cssText = [
+    'all: initial',
     'position: fixed',
     'bottom: 16px',
     'right: 16px',
     'z-index: 2147483647',
-    'all: initial',
     'display: block',
   ].join('; ');
 
@@ -114,11 +117,11 @@ export function mountToggle(
   shadow.appendChild(style);
 
   let enabled = initialEnabled;
-  const showBadge = versionStatus !== 'ok';
-  const badgeTitle =
-    versionStatus === 'mismatch'
-      ? 'Versão do SIGAA diferente da homologada — modo reduzido ativo'
-      : 'Versão do SIGAA não reconhecida — modo reduzido ativo';
+  // Só 'mismatch' merece alerta. 'unknown' acontece em toda tela de relatório
+  // (Boletim, Notas da turma) porque elas não têm #rodape com a versão —
+  // o "!" ali assustava sem haver nada de errado.
+  const showBadge = versionStatus === 'mismatch';
+  const badgeTitle = 'Versão do SIGAA diferente da homologada — modo reduzido ativo';
 
   function render(): void {
     // Limpa conteúdo anterior

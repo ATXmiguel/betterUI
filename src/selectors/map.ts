@@ -268,6 +268,51 @@ export const SEL = {
     fallbacks: [],
     valida: (_el: Element) => true,
   },
+
+  // ── Navegação delegada ao SIGAA (atalhos do painel) ──────────────────
+
+  atualizacoes_links: {
+    id: 'atualizacoes_links',
+    descricao: 'Links JSF do carrossel de atualizações (onclick com idTurma) — usar resolveAll',
+    primario: '#atualizacoes-turma a[onclick]',
+    fallbacks: [],
+    valida: (_el: Element) => true,
+  },
+
+  turma_virtual_links: {
+    id: 'turma_virtual_links',
+    descricao: 'Links JSF de acesso à turma virtual na tabela de turmas (onclick com frontEndIdTurma) — usar resolveAll',
+    primario: 'form[id^="form_acessarTurmaVirtual"] a[onclick]',
+    fallbacks: [],
+    valida: (_el: Element) => true,
+  },
+
+  menu_item_linha: {
+    id: 'menu_item_linha',
+    descricao: 'Linha (tr) clicável de item do JSCookMenu — navega via cmItemMouseUp no mouseup. Usar resolveAll + filtrar por textContent',
+    primario: '#menu-dropdown tr.ThemeOfficeMenuItem',
+    fallbacks: ['tr.ThemeOfficeMenuItem'],
+    valida: (el: Element) => el.querySelector('.ThemeOfficeMenuItemText') !== null,
+  },
+
+  // ── Elementos globais ────────────────────────────────────────────────
+
+
+  frequencia_situacao: {
+    id: 'frequencia_situacao',
+    descricao: 'Células da coluna Situação do mapa de frequência ("Presente", "2 Falta(s)" em texto puro; "Não Registrada" num span color:red) — usar resolveAll',
+    primario: 'table.listing td:last-child',
+    fallbacks: [],
+    valida: (_el: Element) => true,
+  },
+
+  forum_autor: {
+    id: 'forum_autor',
+    descricao: 'Autor dos tópicos do fórum do curso no portal: <acronym title="NOME">CPF</acronym> — usar resolveAll',
+    primario: '#forum-portal table.listagem td acronym',
+    fallbacks: ['#forum-portal td acronym'],
+    valida: (_el: Element) => true,
+  },
 } satisfies Record<string, SeletorSpec>;
 
 /**
