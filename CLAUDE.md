@@ -86,7 +86,7 @@ src/
     router.ts         # identifica em qual página do SIGAA estamos
   selectors/
     map.ts            # ÚNICO arquivo com seletores do DOM do SIGAA
-    version.ts        # lê a versão do SIGAA no rodapé e registra incompatibilidade
+    version.ts        # checagem estrutural de compatibilidade por tela (versão é só log)
   parsers/            # HTML (string) -> objeto tipado. FUNÇÕES PURAS. Sem DOM global, sem fetch.
     turmas.ts
     notas.ts
@@ -136,7 +136,11 @@ export const SEL = {
 
 Resolução: tenta `primario`, depois cada `fallback` em ordem, e só aceita o resultado se `valida()` passar. Se nada passar, retorna `null` — **nunca lança**. Quem chamou trata o `null` desligando aquele recurso e mantendo a página original.
 
-`version.ts` lê a versão exibida no rodapé do SIGAA. Se ela for diferente da última versão homologada, a extensão entra em **modo degradado**: aplica só o reskin da Fase 0 (que é resiliente) e mostra um aviso discreto de que a agregação foi desativada até o mapa ser atualizado.
+`version.ts` decide se uma tela é compatível pela **estrutura**, nunca pelo número de versão. Cada rota declara as âncoras (`SeletorSpec`) sem as quais o reskin faria mais mal que bem; se todas resolvem, a extensão roda — seja qual for a versão no rodapé. A versão lida é só informação de log (`LAST_TESTED_VERSION`).
+
+Se alguma âncora faltar, a tela fica **inteiramente nativa**: nenhuma classe, nenhum CSS, nenhum painel — e o botão betterUI mostra "!" explicando a pausa. Não existe "meio reskin": CSS sem a reorganização de DOM de que depende deixa a página pior que a original (aprendido em 5 atualizações seguidas, ver `docs/DECISOES.md` 2026-10-31).
+
+**Não reintroduzir comparação exata de versão.** Atualização do SIGAA que muda o DOM é tratada adicionando/ajustando a âncora em `REQUIRED` e o seletor em `map.ts`, com teste em `tests/compat/`.
 
 ---
 

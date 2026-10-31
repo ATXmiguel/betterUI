@@ -8,14 +8,14 @@
  * Acessível: role="switch", aria-pressed, focus-visible, prefers-reduced-motion.
  */
 
-import type { VersionStatus } from '@/selectors/version';
+import type { CompatResult } from '@/selectors/version';
 import { log } from '@/lib/log';
 
 let shadowHost: HTMLDivElement | null = null;
 
 export function mountToggle(
   initialEnabled: boolean,
-  versionStatus: VersionStatus,
+  compat: CompatResult,
   onToggle: (enabled: boolean) => void,
 ): void {
   // Evitar duplicação (ex: SPA navigation)
@@ -117,11 +117,12 @@ export function mountToggle(
   shadow.appendChild(style);
 
   let enabled = initialEnabled;
-  // Só 'mismatch' merece alerta. 'unknown' acontece em toda tela de relatório
-  // (Boletim, Notas da turma) porque elas não têm #rodape com a versão —
-  // o "!" ali assustava sem haver nada de errado.
-  const showBadge = versionStatus === 'mismatch';
-  const badgeTitle = 'Versão do SIGAA diferente da homologada — modo reduzido ativo';
+  // "!" só quando a estrutura da tela realmente mudou (a extensão ficou
+  // desligada nela). Versão nova com a mesma estrutura não é problema.
+  const showBadge = compat.status === 'degraded';
+  const badgeTitle =
+    `O SIGAA mudou nesta tela${compat.version ? ` (${compat.version})` : ''} — ` +
+    'a betterUI ficou em pausa aqui para não atrapalhar. O resto continua funcionando.';
 
   function render(): void {
     // Limpa conteúdo anterior
@@ -164,7 +165,7 @@ export function mountToggle(
   }
 
   render();
-  log.debugSync('toggle montado — enabled:', initialEnabled, '— versionStatus:', versionStatus);
+  log.debugSync('toggle montado — enabled:', initialEnabled, '— compat:', compat.status);
 }
 
 export function unmountToggle(): void {

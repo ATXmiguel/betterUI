@@ -9,7 +9,7 @@ import '@/ui/styles.css';
 import { safe } from '@/lib/safe';
 import { initLog, log } from '@/lib/log';
 import { detectRoute } from '@/content/router';
-import { checkVersion } from '@/selectors/version';
+import { checkCompatibility } from '@/selectors/version';
 import { resolve, SEL } from '@/selectors/map';
 import { applyReskin, removeReskin } from '@/ui/reskin';
 import { mountToggle } from '@/ui/toggle';
@@ -44,14 +44,14 @@ safe(async () => {
   const stored = await chrome.storage.local.get('betterui_enabled');
   let enabled = stored['betterui_enabled'] !== false;
 
-  // Verificar versão do SIGAA
-  const versionStatus = checkVersion();
-  log.debug('versão do SIGAA:', versionStatus);
+  // Checagem estrutural (não por número de versão — ver selectors/version.ts)
+  let compat = checkCompatibility(currentRoute);
+  log.debug('compatibilidade:', compat.status, compat.version ?? '(sem versão)');
 
   let dashboardMounted = false;
 
   function tryMountDashboard(): void {
-    if (currentRoute !== 'portal' || versionStatus !== 'ok') return;
+    if (currentRoute !== 'portal' || compat.status !== 'ok') return;
     const matricula = readMatricula();
     if (!matricula) {
       log.debugSync('dashboard: matrícula não encontrada');
@@ -73,10 +73,10 @@ safe(async () => {
 
   // Toggle: sempre montado, mesmo se a extensão estiver desativa,
   // para que o usuário possa reativar
-  mountToggle(enabled, versionStatus, (newState: boolean) => {
+  mountToggle(enabled, compat, (newState: boolean) => {
     enabled = newState;
     if (newState) {
-      applyReskin(currentRoute, versionStatus);
+      applyReskin(currentRoute, compat.status);
       if (!dashboardMounted) tryMountDashboard();
     } else {
       removeReskin();
@@ -87,7 +87,7 @@ safe(async () => {
   });
 
   if (enabled) {
-    applyReskin(currentRoute, versionStatus);
+    applyReskin(currentRoute, compat.status);
     tryMountDashboard();
   }
 
@@ -120,6 +120,9 @@ safe(async () => {
     if (newRoute === 'unknown') return;
 
     const routeChanged = newRoute !== currentRoute;
+    // Estrutura incompatível nesta tela: página fica nativa. Só reavalia
+    // quando a rota muda (outra tela pode ser compatível).
+    if (!routeChanged && compat.status !== 'ok') return;
     const dashboardGone =
       newRoute === 'portal' &&
       dashboardMounted &&
@@ -140,7 +143,8 @@ safe(async () => {
     }
     removeReskin();
     currentRoute = newRoute;
-    applyReskin(currentRoute, versionStatus);
+    if (routeChanged) compat = checkCompatibility(currentRoute);
+    applyReskin(currentRoute, compat.status);
     if (currentRoute === 'portal' && !dashboardMounted) tryMountDashboard();
   }
 

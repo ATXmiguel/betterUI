@@ -179,3 +179,37 @@ Arquivos, tema claro/escuro, 375px e liga/desliga.
 
 Pendente: turma virtual no celular (layout YUI em px fixos) não foi
 tratada; tela de login não foi revalidada ao vivo (exigiria deslogar).
+
+---
+
+## 2026-10-31 — Fim da trava por versão exata do SIGAA
+
+**Problema recorrente (5ª vez).** Na madrugada de 31/10 o SIGAA foi de
+`v4.17.0cefet182` para `v4.19.12cefet183` e a extensão "quebrou" de novo,
+como em 18/08, 24/08, 10/09 e 08/10. Nas cinco vezes o DOM das telas era o
+mesmo; só a string do rodapé mudou. Duas falhas de projeto somavam:
+
+1. `checkVersion()` comparava `detected === HOMOLOGATED_VERSION`. Qualquer
+   bump → `mismatch` → modo degradado.
+2. O modo degradado não era seguro: `applyReskin()` adicionava
+   `sc-reskin-active` (que liga TODO o CSS e o tema escuro) antes de checar a
+   versão, e só pulava a reorganização de DOM. Resultado: tema escuro por
+   cima do layout nativo, contraste quebrado — pior que a página original.
+
+**Decisão.**
+- `checkCompatibility(route)` substitui `checkVersion()`: cada rota tem uma
+  lista de âncoras estruturais (`REQUIRED` em `version.ts`, seletores em
+  `map.ts`). Login: card + links; portal: menu, `#main-docente`,
+  `#turmas-portal`. Turma virtual e relatórios: nenhuma (cada passo já se
+  protege sozinho). Todas resolvem → `ok`, qualquer que seja a versão.
+- Falta âncora → `degraded` = **nada é aplicado** naquela tela (nem a
+  classe). Página 100% nativa, "!" no botão explicando. Ao mudar de rota
+  via AJAX a checagem é refeita para a nova tela.
+- Versão do rodapé virou `LAST_TESTED_VERSION`, só para log.
+- Testes em `tests/compat/compat.test.ts` travam o caso que vinha se
+  repetindo (versão nova + mesma estrutura = `ok`) e o caso de estrutura
+  realmente alterada (= página nativa).
+
+Atualização futura do SIGAA não exige mais bump manual de versão. Se um dia
+a estrutura mudar de verdade, a tela afetada volta a ser a nativa sozinha e
+o conserto é no seletor/âncora, não numa string de versão.

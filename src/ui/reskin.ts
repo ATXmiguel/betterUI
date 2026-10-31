@@ -559,6 +559,14 @@ function unmountThemeToggle(): void {
 }
 
 export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
+  // Estrutura incompatível: NADA é aplicado — nem a classe que ativa o CSS.
+  // O antigo "modo degradado" ligava o CSS sem a reorganização de DOM de
+  // que ele depende, e a página ficava pior que a original.
+  if (version !== 'ok') {
+    log.debugSync('reskin não aplicado — estrutura da tela incompatível:', route);
+    return;
+  }
+
   // Gate: ativa o CSS via classe no body
   document.body.classList.add('sc-reskin-active');
   classesAdded.push({ el: document.body, cls: 'sc-reskin-active' });
@@ -589,11 +597,6 @@ export function applyReskin(route: SigaaRoute, version: VersionStatus): void {
   // com posicionamento em px calculado uma vez no carregamento.
   if (route === 'portal') {
     fixFullWidth();
-  }
-
-  if (version !== 'ok') {
-    log.debugSync('modo degradado — reordenação de DOM desativada');
-    return;
   }
 
   if (route === 'portal') {
