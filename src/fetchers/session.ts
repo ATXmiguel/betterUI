@@ -3,7 +3,7 @@
  *
  * Implementa TODAS as regras obrigatórias do CLAUDE.md §7:
  *   ✓ Fila estritamente sequencial (uma requisição por vez)
- *   ✓ Intervalo mínimo de 800ms entre requisições
+ *   ✓ Intervalo mínimo de 500ms entre requisições
  *   ✓ Máximo de requisições configurável (padrão 40)
  *   ✓ Circuit breaker: 2 falhas consecutivas abortam a coleta
  *   ✓ Cancelável via AbortController
@@ -44,8 +44,8 @@ export function extractMenuComponent(html: string, linkText: string): string | n
         return match?.[1] ?? null;
       }
     }
-  } catch {
-    // Silencioso
+  } catch (err) {
+    log.debugSync('extractMenuComponent: falha ao ler o menu', linkText, err);
   }
   return null;
 }

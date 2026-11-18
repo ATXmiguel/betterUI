@@ -87,7 +87,7 @@ src/
   selectors/
     map.ts            # ÚNICO arquivo com seletores do DOM do SIGAA
     version.ts        # checagem estrutural de compatibilidade por tela (versão é só log)
-  parsers/            # HTML (string) -> objeto tipado. FUNÇÕES PURAS. Sem DOM global, sem fetch.
+  parsers/            # HTML (string) -> objeto tipado. FUNÇÕES PURAS: sem fetch, sem estado, sem tocar na página (usam DOMParser só para ler o HTML recebido).
     turmas.ts
     notas.ts
     frequencia.ts
@@ -106,8 +106,9 @@ src/
   lib/
     safe.ts           # wrapper de fail-open
     log.ts            # log só com flag de debug ligada
+    constants.ts      # constantes compartilhadas (URL do SIGAA, versão do schema do cache)
 tests/
-  fixtures/           # HTML real ANONIMIZADO
+  fixtures/           # HTML/JSON real ANONIMIZADO
   parsers/
 docs/
   MAPEAMENTO.md       # preenchido manualmente — ver seção 10
@@ -191,7 +192,7 @@ Paleta de comandos (`Ctrl+K`) que navega para qualquer função do SIGAA, inclui
 
 Os **parsers são funções puras** — recebem string HTML, devolvem objeto tipado. Isso os torna testáveis sem navegador, sem conta e sem rede, e portáveis caso o projeto migre de transporte no futuro.
 
-- Fixtures em `tests/fixtures/*.html`, salvas do SIGAA real e **anonimizadas antes do commit**: substituir nome, matrícula, CPF, e-mail e notas por valores fictícios.
+- Fixtures em `tests/fixtures/` (hoje arquivos `.json`), salvas do SIGAA real e **anonimizadas antes do commit**: substituir nome, matrícula, CPF, e-mail e notas por valores fictícios.
 - Cada parser tem no mínimo: um teste de caminho feliz, um de tabela vazia, um de HTML de versão antiga.
 - Nunca escrever teste que dependa de estar logado.
 

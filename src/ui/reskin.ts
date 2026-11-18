@@ -9,6 +9,7 @@
  * - removeReskin() reverte exatamente o que applyReskin() fez.
  */
 
+import { DISCENTE_URL } from '@/lib/constants';
 import { resolve, resolveAll, SEL } from '@/selectors/map';
 import { log } from '@/lib/log';
 import { toggleTheme } from '@/ui/theme';
@@ -379,8 +380,6 @@ function renameMenuItem(from: string, to: string): void {
     // Silencioso
   }
 }
-
-const DISCENTE_URL = 'https://sig.cefetmg.br/sigaa/portais/discente/discente.jsf';
 
 /**
  * Torna o h1 "CEFET-MG - SIGAA" clicável em qualquer página do SIGAA,

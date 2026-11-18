@@ -7,7 +7,7 @@
 
 import { log } from '@/lib/log';
 
-const STORAGE_KEY = 'betterui_theme';
+const THEME_STORAGE_KEY = 'betterui_theme';
 const DARK_CLASS = 'sc-theme-dark';
 
 type ThemeValue = 'light' | 'dark';
@@ -23,8 +23,8 @@ function applyTheme(dark: boolean): void {
  */
 export async function initTheme(): Promise<boolean> {
   try {
-    const stored = await chrome.storage.local.get(STORAGE_KEY);
-    const value = stored[STORAGE_KEY] as ThemeValue | undefined;
+    const stored = await chrome.storage.local.get(THEME_STORAGE_KEY);
+    const value = stored[THEME_STORAGE_KEY] as ThemeValue | undefined;
 
     const dark = value
       ? value === 'dark'
@@ -46,7 +46,7 @@ export async function toggleTheme(): Promise<boolean> {
   const dark = !document.body.classList.contains(DARK_CLASS);
   applyTheme(dark);
   try {
-    await chrome.storage.local.set({ [STORAGE_KEY]: dark ? 'dark' : 'light' satisfies ThemeValue });
+    await chrome.storage.local.set({ [THEME_STORAGE_KEY]: dark ? 'dark' : 'light' satisfies ThemeValue });
   } catch {
     log.debugSync('theme: falha ao salvar preferência (não crítico)');
   }

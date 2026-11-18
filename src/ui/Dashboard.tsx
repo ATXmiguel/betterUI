@@ -8,6 +8,7 @@
  * Cada card tem uma barra de cor determinística por nome da disciplina.
  */
 
+import { CACHE_SCHEMA_VERSION } from '@/lib/constants';
 import { h, render } from 'preact';
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import { collectAll } from '@/fetchers/collect';
@@ -594,8 +595,6 @@ function ProgressBar({ info }: { info: ProgressInfo; onCancel: () => void }) {
   );
 }
 
-const SCHEMA_VERSION_UI = 1;
-
 function Dashboard({
   matricula,
   nomeAlunoInicial,
@@ -654,7 +653,7 @@ function Dashboard({
           turmas: turmasIniciais,
           notas: {},
           frequencia: {},
-          versaoSchema: SCHEMA_VERSION_UI,
+          versaoSchema: CACHE_SCHEMA_VERSION,
         });
         // Sem cache válido: sugere a coleta, mas não a dispara sozinha —
         // o clique no botão continua sendo obrigatório.

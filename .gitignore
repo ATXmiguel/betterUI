@@ -22,3 +22,6 @@ docs/screenshots/**/*.png
 
 # Pacotes de build da extensão (artefato, não código-fonte)
 *.zip
+
+# Backup local da revisao de 17/11/2026 (copia de arquivos com dado pessoal; nao versionar)
+_backup_*/

@@ -16,6 +16,7 @@
  * pendentes são coletadas.
  */
 
+import { SIGAA_BASE, DISCENTE_URL, CACHE_SCHEMA_VERSION } from '@/lib/constants';
 import {
   SessionQueue,
   SessionExpiredError,
@@ -38,9 +39,6 @@ import type {
   CollectOptions,
 } from '@/types';
 
-const SIGAA_BASE = 'https://sig.cefetmg.br/sigaa';
-const DISCENTE_URL = `${SIGAA_BASE}/portais/discente/discente.jsf`;
-const SCHEMA_VERSION = 1;
 
 export async function collectAll(options: CollectOptions): Promise<ColecaoCompleta> {
   const { onProgress, onError, signal, matricula } = options;
@@ -133,15 +131,15 @@ export async function collectAll(options: CollectOptions): Promise<ColecaoComple
       turmas,
       notas,
       frequencia,
-      versaoSchema: SCHEMA_VERSION,
+      versaoSchema: CACHE_SCHEMA_VERSION,
     };
   }
 
   async function savePartial(): Promise<void> {
     try {
       await saveColecao(buildResult());
-    } catch {
-      // Silencioso — falha de storage não interrompe a coleta
+    } catch (err) {
+      log.debugSync('collect: falha ao salvar cache parcial (a coleta continua)', err);
     }
   }
 }

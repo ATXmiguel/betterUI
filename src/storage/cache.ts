@@ -2,14 +2,15 @@
  * Cache local — chrome.storage.local com TTL e versionamento.
  *
  * Princípio 6 do CLAUDE.md: dados acadêmicos só em chrome.storage.local,
- * com botão visível de "Apagar dados locais" e limpeza ao detectar logout.
+ * com limpeza automática ao detectar logout (o botão manual "Apagar dados locais"
+ * foi removido em 10/08/2026 — ver docs/DECISOES.md).
  */
 
+import { CACHE_SCHEMA_VERSION } from '@/lib/constants';
 import { log } from '@/lib/log';
 import type { ColecaoCompleta, CacheEntry } from '@/types';
 
-const STORAGE_KEY = 'betterui_cache_v1';
-const SCHEMA_VERSION = 1;
+const CACHE_STORAGE_KEY = 'betterui_cache_v1';
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 
 export async function saveColecao(data: ColecaoCompleta): Promise<void> {
@@ -17,21 +18,21 @@ export async function saveColecao(data: ColecaoCompleta): Promise<void> {
     data,
     cachedAt: Date.now(),
     ttl: TTL_MS,
-    schemaVersion: SCHEMA_VERSION,
+    schemaVersion: CACHE_SCHEMA_VERSION,
   };
-  await chrome.storage.local.set({ [STORAGE_KEY]: entry });
+  await chrome.storage.local.set({ [CACHE_STORAGE_KEY]: entry });
   log.debugSync('cache: colecao salva — turmas:', data.turmas.length);
 }
 
 export async function loadColecao(): Promise<ColecaoCompleta | null> {
   try {
-    const result = await chrome.storage.local.get(STORAGE_KEY);
-    const entry = result[STORAGE_KEY] as CacheEntry<ColecaoCompleta> | undefined;
+    const result = await chrome.storage.local.get(CACHE_STORAGE_KEY);
+    const entry = result[CACHE_STORAGE_KEY] as CacheEntry<ColecaoCompleta> | undefined;
 
     if (!entry) return null;
 
     // Invalidar por mudança de schema
-    if (entry.schemaVersion !== SCHEMA_VERSION) {
+    if (entry.schemaVersion !== CACHE_SCHEMA_VERSION) {
       log.debugSync('cache: schema version mudou, invalidando');
       await clearColecao();
       return null;
@@ -53,7 +54,7 @@ export async function loadColecao(): Promise<ColecaoCompleta | null> {
 }
 
 export async function clearColecao(): Promise<void> {
-  await chrome.storage.local.remove(STORAGE_KEY);
+  await chrome.storage.local.remove(CACHE_STORAGE_KEY);
   log.debugSync('cache: colecao apagada');
 }
 
@@ -72,8 +73,8 @@ export async function clearOnLogout(): Promise<void> {
       await clearColecao();
       log.debugSync('cache: apagado por logout detectado');
     }
-  } catch {
-    // Silencioso
+  } catch (err) {
+    log.debugSync('cache: falha ao checar logout', err);
   }
 }
 

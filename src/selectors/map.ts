@@ -8,6 +8,8 @@
  * Última versão testada ao vivo: v4.19.12cefet183 (só informativa — ver version.ts)
  */
 
+import { log } from '@/lib/log';
+
 export interface SeletorSpec {
   id: string;
   descricao: string;
@@ -327,8 +329,8 @@ export function resolve(spec: SeletorSpec): Element | null {
       const el = document.querySelector(selector);
       if (el && spec.valida(el)) return el;
     }
-  } catch {
-    // Seletor inválido ou erro de DOM — falha silenciosa
+  } catch (err) {
+    log.debugSync('resolve: erro ao resolver seletor', spec.id, err);
   }
   return null;
 }
@@ -345,8 +347,8 @@ export function resolveAll(spec: SeletorSpec): Element[] {
       const valid = els.filter(el => spec.valida(el));
       if (valid.length > 0) return valid;
     }
-  } catch {
-    // Silencioso
+  } catch (err) {
+    log.debugSync('resolveAll: erro ao resolver seletor', spec.id, err);
   }
   return [];
 }
